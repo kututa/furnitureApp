@@ -1,0 +1,399 @@
+import { Feather, Ionicons } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import { Dimensions, FlatList, Image, Modal, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import Cart, { CartItem } from '../cart/cart';
+import Checkout from '../checkout/checkout';
+import ReviewInterface from '../review-interface/review-interface';
+
+const products = [
+  {
+    id: '1',
+    name: 'Handcrafted Coffee Table',
+    price: 'Ksh 8,500',
+    image: require('../../assets/images/0.jpg'),
+  },
+  {
+    id: '2',
+    name: 'Modern Dining Set',
+    price: 'Ksh 25,000',
+    image: require('../../assets/images/1.jpg'),
+  },
+  {
+    id: '3',
+    name: 'Rustic Bookshelf',
+    price: 'Ksh 12,000',
+    image: require('../../assets/images/2.jpg'),
+  },
+  {
+    id: '4',
+    name: 'Elegant Sofa',
+    price: 'Ksh 35,000',
+    image: require('../../assets/images/3.jpg'),
+  },
+  {
+    id: '5',
+    name: 'Minimalist Desk',
+    price: 'Ksh 15,000',
+    image: require('../../assets/images/4.jpg'),
+  },
+  {
+    id: '6',
+    name: 'Cozy Armchair',
+    price: 'Ksh 7,000',
+    image: require('../../assets/images/5.jpg'),
+  },
+];
+
+const BuyerInterface = () => {
+  const [search, setSearch] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<any>(null);
+  const [reviewVisible, setReviewVisible] = useState(false);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [showCart, setShowCart] = useState(false);
+  const [showCheckout, setShowCheckout] = useState(false);
+
+  const handleImagePress = (img: any) => {
+    setSelectedImage(img);
+    setModalVisible(true);
+  };
+
+  const renderProduct = ({ item }: any) => {
+    return (
+      <View style={styles.card}>
+        <TouchableOpacity onPress={() => handleImagePress(item.image)}>
+          <Image source={item.image} style={styles.cardImage} resizeMode="cover" />
+        </TouchableOpacity>
+        <Text style={styles.cardTitle}>{item.name}</Text>
+        <View style={styles.cardRow}>
+          <Text style={styles.cardPrice}>{item.price}</Text>
+          <TouchableOpacity onPress={() => {
+            setCart(prev => {
+              const existing = prev.find(ci => ci.id === item.id);
+              if (existing) {
+                return prev.map(ci => ci.id === item.id ? { ...ci, quantity: ci.quantity + 1 } : ci);
+              } else {
+                return [...prev, { ...item, quantity: 1 }];
+              }
+            });
+          }}>
+            <Text style={styles.addToCart}>Add to Cart</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
+  // Cart quantity update handler
+  const handleUpdateQuantity = (id: string, quantity: number) => {
+    setCart(prev => prev.map(item => item.id === id ? { ...item, quantity: Math.max(1, quantity) } : item));
+  };
+
+
+  // Calculate summary values
+  const SHIPPING_COST = 100;
+  const subtotal = cart.reduce((sum, item) => sum + parseInt(item.price.replace(/[^\d]/g, '')) * item.quantity, 0);
+  const total = subtotal + SHIPPING_COST;
+
+  // Remove item from cart
+  const handleRemoveItem = (id: string) => {
+    setCart(prev => prev.filter(item => item.id !== id));
+  };
+
+  // Handle payment confirmation
+  const handleConfirmPayment = (form: any) => {
+    // For now, just reset checkout and cart
+    setShowCheckout(false);
+    setCart([]);
+    // You can add payment logic here
+  };
+
+  if (showCheckout) {
+    return (
+      <Checkout
+        items={cart}
+        subtotal={subtotal}
+        shipping={SHIPPING_COST}
+        total={total}
+        onBack={() => setShowCheckout(false)}
+        onRemoveItem={handleRemoveItem}
+        onConfirmPayment={handleConfirmPayment}
+      />
+    );
+  }
+
+  if (showCart) {
+    return (
+      <Cart
+        items={cart}
+        onBack={() => setShowCart(false)}
+        onUpdateQuantity={handleUpdateQuantity}
+        onCheckout={() => setShowCheckout(true)}
+      />
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>FurniFinds</Text>
+        <Feather name="shopping-cart" size={22} color="#222" />
+      </View>
+
+      {/* Search */}
+      <View style={styles.searchBox}>
+        <Ionicons name="search" size={18} color="#7CB798" style={{ marginRight: 8 }} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search for furniture"
+          placeholderTextColor="#7CB798"
+          value={search}
+          onChangeText={setSearch}
+        />
+      </View>
+
+      {/* Filters */}
+      <View style={styles.filterRow}>
+        <TouchableOpacity style={styles.filterBtn}><Text style={styles.filterBtnText}>Category</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.filterBtn}><Text style={styles.filterBtnText}>Price</Text></TouchableOpacity>
+        <TouchableOpacity style={styles.filterBtn}><Text style={styles.filterBtnText}>Location</Text></TouchableOpacity>
+      </View>
+
+      {/* Product Grid */}
+      <FlatList
+        data={products}
+        renderItem={renderProduct}
+        keyExtractor={item => item.id}
+        numColumns={2}
+        columnWrapperStyle={{ justifyContent: 'space-between' }}
+        contentContainerStyle={{ paddingBottom: 80 }}
+        showsVerticalScrollIndicator={false}
+      />
+
+      {/* Image Modal */}
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Pressable style={styles.closeBtn} onPress={() => setModalVisible(false)}>
+              <Text style={styles.closeBtnText}>×</Text>
+            </Pressable>
+            {selectedImage && (
+              <Image source={selectedImage} style={styles.fullImage} resizeMode="contain" />
+            )}
+            {/* Rate Product Button */}
+            <TouchableOpacity style={styles.rateBtn} onPress={() => setReviewVisible(true)}>
+              <Text style={styles.rateBtnText}>Rate Product</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Review Modal */}
+      <ReviewInterface visible={reviewVisible} onClose={() => setReviewVisible(false)} />
+
+      {/* Bottom Navigation */}
+      <View style={styles.bottomNav}>
+        <Ionicons name="home-outline" size={24} color="#7CB798" />
+        <Ionicons name="search-outline" size={24} color="#7CB798" />
+        <TouchableOpacity onPress={() => setShowCart(true)} style={{ position: 'relative' }}>
+          <Feather name="shopping-cart" size={24} color="#7CB798" />
+          {cart.length > 0 && (
+            <View style={styles.cartBadge}>
+              <Text style={styles.cartBadgeText}>{cart.reduce((sum, item) => sum + item.quantity, 0)}</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+        <Ionicons name="person-outline" size={24} color="#7CB798" />
+      </View>
+    </View>
+  );
+};
+
+const cardWidth = (Dimensions.get('window').width - 24 * 2 - 16) / 2;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#F8FCF9',
+    padding: 24,
+    paddingBottom: 0,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#222',
+  },
+  searchBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E7F3EC',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 12,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
+    color: '#222',
+  },
+  filterRow: {
+    flexDirection: 'row',
+    marginBottom: 16,
+    gap: 8,
+  },
+  filterBtn: {
+    backgroundColor: '#fff',
+    borderRadius: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: '#E7F3EC',
+    marginRight: 8,
+  },
+  filterBtnText: {
+    color: '#7CB798',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  card: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    marginBottom: 18,
+    width: cardWidth,
+    shadowColor: '#000',
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+    padding: 8,
+  },
+  cardImage: {
+    width: '100%',
+    height: 160,
+    borderRadius: 8,
+    marginBottom: 8,
+    backgroundColor: '#eee',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    width: '90%',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 12,
+    alignItems: 'center',
+    position: 'relative',
+  },
+  fullImage: {
+    width: '100%',
+    height: 350,
+    borderRadius: 8,
+    backgroundColor: '#eee',
+  },
+  closeBtn: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+    zIndex: 2,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  closeBtnText: {
+    fontSize: 26,
+    color: '#222',
+    fontWeight: 'bold',
+    lineHeight: 28,
+  },
+  cardTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#222',
+    marginBottom: 4,
+  },
+  cardRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  cardPrice: {
+    color: '#7CB798',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  addToCart: {
+    color: '#7CB798',
+    fontWeight: 'bold',
+    fontSize: 14,
+    marginLeft: 8,
+  },
+  bottomNav: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 56,
+    backgroundColor: '#fff',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    borderTopWidth: 1,
+    borderTopColor: '#E7F3EC',
+  },
+  rateBtn: {
+    marginTop: 18,
+    backgroundColor: '#38E472',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 22,
+    alignSelf: 'center',
+  },
+  rateBtnText: {
+    color: '#111',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  cartBadge: {
+    position: 'absolute',
+    top: -6,
+    right: -10,
+    backgroundColor: '#38E472',
+    borderRadius: 10,
+    minWidth: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+    zIndex: 10,
+  },
+  cartBadgeText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 12,
+  },
+});
+
+export default BuyerInterface;
