@@ -1,6 +1,8 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
-import { Dimensions, FlatList, Image, Modal, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Dimensions, FlatList, Image, Modal, Platform, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import Profile from '../buyerprofile/profile';
 import Cart, { CartItem } from '../cart/cart';
 import Checkout from '../checkout/checkout';
 import Receipt from '../receipt/receipt';
@@ -58,6 +60,7 @@ const products = [
 ];
 
 const BuyerInterface = () => {
+  const insets = useSafeAreaInsets();
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
   const [priceFilter, setPriceFilter] = useState<string | null>(null);
@@ -70,6 +73,7 @@ const BuyerInterface = () => {
   const [showCheckout, setShowCheckout] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
   const [lastOrder, setLastOrder] = useState<any>(null);
+  const [showProfile, setShowProfile] = useState(false);
 
   const handleImagePress = (img: any) => {
     setSelectedImage(img);
@@ -138,6 +142,10 @@ const BuyerInterface = () => {
     setCart([]);
   };
 
+
+  if (showProfile) {
+    return <Profile onBack={() => setShowProfile(false)} />;
+  }
 
   if (showReceipt && lastOrder) {
     return (
@@ -273,7 +281,9 @@ const BuyerInterface = () => {
         keyExtractor={item => item.id}
         numColumns={2}
         columnWrapperStyle={{ justifyContent: 'space-between' }}
-        contentContainerStyle={{ paddingBottom: 80 }}
+  // Ensure last product card is fully visible above the bottom navigation bar
+  contentContainerStyle={{ paddingBottom: (styles.bottomNav.height || 56) + insets.bottom + 24 }}
+  scrollIndicatorInsets={{ bottom: (styles.bottomNav.height || 56) + insets.bottom + 24 }}
         showsVerticalScrollIndicator={false}
       />
 
@@ -303,25 +313,30 @@ const BuyerInterface = () => {
       {/* Review Modal */}
       <ReviewInterface visible={reviewVisible} onClose={() => setReviewVisible(false)} />
 
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <Ionicons name="home-outline" size={24} color="#7CB798" />
-        <Ionicons name="search-outline" size={24} color="#7CB798" />
-        <TouchableOpacity onPress={() => setShowCart(true)} style={{ position: 'relative' }}>
-          <Feather name="shopping-cart" size={24} color="#7CB798" />
-          {cart.length > 0 && (
-            <View style={styles.cartBadge}>
-              <Text style={styles.cartBadgeText}>{cart.reduce((sum, item) => sum + item.quantity, 0)}</Text>
-            </View>
-          )}
-        </TouchableOpacity>
-        <Ionicons name="person-outline" size={24} color="#7CB798" />
-      </View>
+      {/* Bottom Navigation - wrapped in SafeAreaView for adaptive spacing */}
+      <SafeAreaView edges={["bottom"]} style={styles.bottomNavSafeArea}>
+        <View style={styles.bottomNav}>
+          <Ionicons name="home-outline" size={24} color="#7CB798" />
+          {/* <Ionicons name="search-outline" size={24} color="#7CB798" /> */}
+          <TouchableOpacity onPress={() => setShowCart(true)} style={{ position: 'relative' }}>
+            <Feather name="shopping-cart" size={24} color="#7CB798" />
+            {cart.length > 0 && (
+              <View style={styles.cartBadge}>
+                <Text style={styles.cartBadgeText}>{cart.reduce((sum, item) => sum + item.quantity, 0)}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setShowProfile(true)}>
+            <Ionicons name="person-outline" size={24} color="#7CB798" />
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
     </View>
   );
 };
 
 const cardWidth = (Dimensions.get('window').width - 24 * 2 - 16) / 2;
+const cardImageHeight = 190; // Slightly increased for better visual impact
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -414,7 +429,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: '#fff',
     borderRadius: 12,
-    marginBottom: 18,
+    marginBottom: 14, // Slightly reduced for tighter grid
     width: cardWidth,
     shadowColor: '#000',
     shadowOpacity: 0.04,
@@ -422,12 +437,15 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     elevation: 2,
     padding: 8,
+    // Ensure content never overflows
+    minHeight: cardImageHeight + 60,
+    justifyContent: 'flex-start',
   },
   cardImage: {
     width: '100%',
-    height: 160,
+    height: cardImageHeight,
     borderRadius: 8,
-    marginBottom: 8,
+    marginBottom: 6, // Slightly reduced for tighter layout
     backgroundColor: '#eee',
   },
   modalOverlay: {
@@ -476,17 +494,25 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: 'bold',
     color: '#222',
-    marginBottom: 4,
+    marginBottom: 2,
+    flexWrap: 'wrap',
+    textAlign: 'left',
   },
   cardRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    marginBottom: 2,
+    gap: 4,
   },
   cardPrice: {
     color: '#7CB798',
     fontWeight: 'bold',
     fontSize: 14,
+    flexShrink: 1,
+    flexWrap: 'wrap',
+    textAlign: 'left',
+    maxWidth: cardWidth * 0.6,
   },
   addToCart: {
     color: '#7CB798',
@@ -494,11 +520,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginLeft: 8,
   },
-  bottomNav: {
+  // Bottom navigation bar: Responsive padding to avoid overlap with phone navigation bars/home indicators.
+  // Uses SafeAreaView for adaptive spacing on all devices (Android/iOS, small/large screens).
+  bottomNavSafeArea: {
     position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
+    backgroundColor: 'transparent',
+    // No height here; inner bar controls height
+  },
+  bottomNav: {
     height: 56,
     backgroundColor: '#fff',
     flexDirection: 'row',
@@ -506,6 +538,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     borderTopWidth: 1,
     borderTopColor: '#E7F3EC',
+    // Responsive bottom padding for nav bar/home indicator
+    paddingBottom: Platform.OS === 'ios' ? 10 : 16, // iOS: extra for home indicator, Android: for nav bar
+    // The SafeAreaView will add more if needed
   },
   rateBtn: {
     marginTop: 18,
