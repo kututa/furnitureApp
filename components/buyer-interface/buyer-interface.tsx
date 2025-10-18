@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Dimensions, FlatList, Image, Modal, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Cart, { CartItem } from '../cart/cart';
 import Checkout from '../checkout/checkout';
+import Receipt from '../receipt/receipt';
 import ReviewInterface from '../review-interface/review-interface';
 
 const products = [
@@ -11,47 +12,64 @@ const products = [
     name: 'Handcrafted Coffee Table',
     price: 'Ksh 8,500',
     image: require('../../assets/images/0.jpg'),
+    category: 'Tables',
+    location: 'Nairobi',
   },
   {
     id: '2',
     name: 'Modern Dining Set',
     price: 'Ksh 25,000',
     image: require('../../assets/images/1.jpg'),
+    category: 'Tables',
+    location: 'Mombasa',
   },
   {
     id: '3',
     name: 'Rustic Bookshelf',
     price: 'Ksh 12,000',
     image: require('../../assets/images/2.jpg'),
+    category: 'Cabinets',
+    location: 'Nairobi',
   },
   {
     id: '4',
     name: 'Elegant Sofa',
     price: 'Ksh 35,000',
     image: require('../../assets/images/3.jpg'),
+    category: 'Sofas',
+    location: 'Mombasa',
   },
   {
     id: '5',
     name: 'Minimalist Desk',
     price: 'Ksh 15,000',
     image: require('../../assets/images/4.jpg'),
+    category: 'Desks',
+    location: 'Nairobi',
   },
   {
     id: '6',
     name: 'Cozy Armchair',
     price: 'Ksh 7,000',
     image: require('../../assets/images/5.jpg'),
+    category: 'Chairs',
+    location: 'Mombasa',
   },
 ];
 
 const BuyerInterface = () => {
   const [search, setSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+  const [priceFilter, setPriceFilter] = useState<string | null>(null);
+  const [openDropdown, setOpenDropdown] = useState<'category' | 'price' | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedImage, setSelectedImage] = useState<any>(null);
   const [reviewVisible, setReviewVisible] = useState(false);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [showCart, setShowCart] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [lastOrder, setLastOrder] = useState<any>(null);
 
   const handleImagePress = (img: any) => {
     setSelectedImage(img);
@@ -101,12 +119,45 @@ const BuyerInterface = () => {
   };
 
   // Handle payment confirmation
+
   const handleConfirmPayment = (form: any) => {
-    // For now, just reset checkout and cart
+    // Generate order number and delivery date
+    const orderNumber = Math.floor(10000000 + Math.random() * 90000000).toString();
+    const deliveryDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-KE', { year: 'numeric', month: 'long', day: 'numeric' });
+    setLastOrder({
+      items: cart,
+      subtotal,
+      shipping: SHIPPING_COST,
+      total,
+      orderNumber,
+      deliveryDate,
+      paymentMethod: 'M-pesa',
+    });
     setShowCheckout(false);
+    setShowReceipt(true);
     setCart([]);
-    // You can add payment logic here
   };
+
+
+  if (showReceipt && lastOrder) {
+    return (
+      <Receipt
+        items={lastOrder.items}
+        subtotal={lastOrder.subtotal}
+        shipping={lastOrder.shipping}
+        total={lastOrder.total}
+        orderNumber={lastOrder.orderNumber}
+        deliveryDate={lastOrder.deliveryDate}
+        paymentMethod={lastOrder.paymentMethod}
+        onBackHome={() => {
+          setShowReceipt(false);
+          setLastOrder(null);
+          setShowCart(false);
+          setCart([]);
+        }}
+      />
+    );
+  }
 
   if (showCheckout) {
     return (
@@ -133,13 +184,61 @@ const BuyerInterface = () => {
     );
   }
 
+
+
+  // Filtering logic
+  let filteredProducts = products.filter(p => {
+    let priceValue = parseInt(p.price.replace(/[^\d]/g, ''));
+    let priceMatch = true;
+    if (priceFilter === '1000 to 10000') priceMatch = priceValue >= 1000 && priceValue <= 10000;
+    else if (priceFilter === '10000+') priceMatch = priceValue > 10000;
+    return (
+      (!categoryFilter || p.category === categoryFilter) &&
+      priceMatch &&
+      (!search || p.name.toLowerCase().includes(search.toLowerCase()))
+    );
+  });
+
+  // Dropdown overlay rendering
+  const renderDropdownOverlay = () => {
+    if (!openDropdown) return null;
+    let options: string[] = [];
+    let onSelect: (option: string) => void = () => {};
+    let selected = '';
+    if (openDropdown === 'category') {
+      options = ['All', 'Tables', 'Chairs', 'Desks', 'Sofas', 'Cabinets'];
+      onSelect = (option) => {
+        if (option === 'All') setCategoryFilter(null);
+        else setCategoryFilter(option);
+        setOpenDropdown(null);
+      };
+      selected = categoryFilter || 'All';
+    } else if (openDropdown === 'price') {
+      options = ['1000 to 10000', '10000+'];
+      onSelect = (option) => { setPriceFilter(option); setOpenDropdown(null); };
+      selected = priceFilter || '';
+    }
+    return (
+      <Pressable style={styles.dropdownOverlay} onPress={() => setOpenDropdown(null)}>
+        <View style={styles.dropdownMenuOverlay}>
+          {options.map(option => (
+            <TouchableOpacity
+              key={option}
+              style={[styles.dropdownItem, selected === option && { backgroundColor: '#E7F3EC' }]}
+              onPress={() => onSelect(option)}
+            >
+              <Text style={styles.dropdownText}>{option}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </Pressable>
+    );
+  };
+
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>FurniFinds</Text>
-        <Feather name="shopping-cart" size={22} color="#222" />
-      </View>
+      {/* Dropdown Overlay */}
+      {renderDropdownOverlay()}
 
       {/* Search */}
       <View style={styles.searchBox}>
@@ -155,14 +254,21 @@ const BuyerInterface = () => {
 
       {/* Filters */}
       <View style={styles.filterRow}>
-        <TouchableOpacity style={styles.filterBtn}><Text style={styles.filterBtnText}>Category</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.filterBtn}><Text style={styles.filterBtnText}>Price</Text></TouchableOpacity>
-        <TouchableOpacity style={styles.filterBtn}><Text style={styles.filterBtnText}>Location</Text></TouchableOpacity>
+        <View style={{ flex: 1, zIndex: 2 }}>
+          <TouchableOpacity style={styles.filterBtn} onPress={() => setOpenDropdown(openDropdown === 'category' ? null : 'category')}>
+            <Text style={styles.filterBtnText}>{categoryFilter || 'Category'}</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={{ flex: 1, zIndex: 2 }}>
+          <TouchableOpacity style={styles.filterBtn} onPress={() => setOpenDropdown(openDropdown === 'price' ? null : 'price')}>
+            <Text style={styles.filterBtnText}>{priceFilter || 'Price'}</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Product Grid */}
       <FlatList
-        data={products}
+        data={filteredProducts}
         renderItem={renderProduct}
         keyExtractor={item => item.id}
         numColumns={2}
@@ -261,11 +367,49 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#E7F3EC',
     marginRight: 8,
+    minWidth: 90,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 2,
   },
   filterBtnText: {
     color: '#7CB798',
     fontWeight: 'bold',
     fontSize: 14,
+  },
+  dropdownOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.08)',
+    zIndex: 100,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+  },
+  dropdownMenuOverlay: {
+    marginTop: 110,
+    minWidth: 180,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOpacity: 0.13,
+    shadowRadius: 12,
+    elevation: 8,
+    paddingVertical: 8,
+    zIndex: 101,
+    alignSelf: 'center',
+  },
+  dropdownItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+  },
+  dropdownText: {
+    fontSize: 16,
+    color: '#222',
+    textAlign: 'center',
   },
   card: {
     backgroundColor: '#fff',
