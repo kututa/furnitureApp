@@ -37,7 +37,9 @@ const Receipt: React.FC<ReceiptProps> = ({
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={styles.headerRow}>
-          <Ionicons name="arrow-back" size={24} color="#222" />
+          <View style={{ padding: 4 }}>
+            <Ionicons name="arrow-back" size={24} color="#222" />
+          </View>
           <Text style={styles.header}>Order Confirmation</Text>
           <View style={{ width: 24 }} />
         </View>
@@ -102,12 +104,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 16,
+            marginTop: 18, // Push header down from the top
+
   },
   header: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#222',
     textAlign: 'center',
+
   },
   successTitle: {
     fontSize: 20,

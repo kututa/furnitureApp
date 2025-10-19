@@ -94,12 +94,12 @@ const Checkout: React.FC<CheckoutProps> = ({
       </ScrollView>
 
       {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
+      {/* <View style={styles.bottomNav}>
         <Ionicons name="home-outline" size={24} color="#7CB798" />
         <Ionicons name="search-outline" size={24} color="#7CB798" />
         <Ionicons name="cart-outline" size={24} color="#7CB798" />
         <Ionicons name="person-outline" size={24} color="#7CB798" />
-      </View>
+      </View> */}
     </View>
   );
 };
@@ -118,6 +118,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 16,
+    marginTop: 18, // Push header down from the top
   },
   header: {
     fontSize: 20,

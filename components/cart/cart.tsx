@@ -83,12 +83,12 @@ const Cart: React.FC<CartProps> = ({ items, onBack, onCheckout, onUpdateQuantity
       </ScrollView>
 
       {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
+      {/* <View style={styles.bottomNav}>
         <Ionicons name="home-outline" size={24} color="#7CB798" />
         <Ionicons name="search-outline" size={24} color="#7CB798" />
         <Ionicons name="cart-outline" size={24} color="#7CB798" />
         <Ionicons name="person-outline" size={24} color="#7CB798" />
-      </View>
+      </View> */}
     </View>
   );
 };
