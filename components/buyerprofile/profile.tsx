@@ -2,6 +2,8 @@ import { Feather, Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useState } from 'react';
 import { Alert, FlatList, Image, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, ToastAndroid, TouchableOpacity, View } from 'react-native';
+
+import { useRouter } from 'expo-router';
 type Address = { id: string; name: string; location: string };
 type Order = { id: string; status: string; summary: string; date: string };
 
@@ -9,6 +11,20 @@ const initialAddresses = [
   { id: '1', name: 'Home', location: 'Nairobi, Kenya' },
   { id: '2', name: 'Office', location: 'Mombasa, Kenya' },
 ];
+const LogoutButton = () => {
+  const router = useRouter();
+  return (
+    <View style={logoutStyles.logoutContainer}>
+      <TouchableOpacity
+        style={logoutStyles.logoutButton}
+        activeOpacity={0.8}
+  onPress={() => router.replace('/')}
+      >
+        <Text style={logoutStyles.logoutText}>Logout</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
 
 const initialOrders = [
   { id: '101', status: 'Pending', summary: 'Table x1, Chair x2', date: '2025-10-10' },
@@ -149,7 +165,10 @@ const Profile: React.FC<ProfileProps> = ({ onBack }) => {
             <Text style={styles.saveBtnText}>Save</Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+      {/* Place the Logout button near the bottom, spaced from other elements */}
+      <View style={{ flex: 1 }} />
+      <LogoutButton />
+    </ScrollView>
 
       {/* Edit Address Modal */}
       <Modal visible={addressModal.visible} transparent animationType="slide">
@@ -410,6 +429,31 @@ const styles = StyleSheet.create({
   received: {
     borderLeftWidth: 4,
     borderLeftColor: '#38E472',
+  },
+});
+
+const logoutStyles = StyleSheet.create({
+  logoutContainer: {
+    alignItems: 'flex-start',
+    marginLeft: 18,
+    marginBottom: 32,
+  },
+  logoutButton: {
+    backgroundColor: '#e74c3c', // red
+    paddingVertical: 8,
+    paddingHorizontal: 24,
+    borderRadius: 18,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+  },
+  logoutText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+    letterSpacing: 1,
   },
 });
 

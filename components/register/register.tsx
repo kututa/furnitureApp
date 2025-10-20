@@ -18,10 +18,12 @@ const Register: React.FC<RegisterProps> = ({ onShowLogin }) => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.headerRow}>
-        <Text style={styles.backArrow}>{'\u2190'}</Text>
+        {/* <Text style={styles.backArrow}>{'\u2190'}</Text> */}
         <Text style={styles.header}>Create Account</Text>
         <View style={{ width: 24 }} />
       </View>
+      {/* Add a bit more space below header to push it slightly down */}
+      <View style={{ height: 16 }} />
 
       {/* Full Name */}
       <TextInput
@@ -89,7 +91,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 24,
-    marginTop: 8,
+    marginTop: 58,
   },
   backArrow: {
     fontSize: 22,

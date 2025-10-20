@@ -1,6 +1,40 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+
+const logoutStyles = StyleSheet.create({
+  logoutContainer: {
+    alignItems: 'center',
+    marginVertical: 24,
+  },
+  logoutButton: {
+    backgroundColor: '#FF5A5F',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 8,
+  },
+  logoutText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 16,
+  },
+});
+
+const LogoutButton = () => {
+  const router = useRouter();
+  return (
+    <View style={logoutStyles.logoutContainer}>
+      <TouchableOpacity
+        style={logoutStyles.logoutButton}
+        activeOpacity={0.8}
+        onPress={() => router.replace('/')}
+      >
+        <Text style={logoutStyles.logoutText}>Logout</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
 
 interface SellerProfileProps {
   onClose: () => void;
@@ -76,12 +110,18 @@ const SellerProfile: React.FC<SellerProfileProps> = ({ onClose }) => {
             placeholderTextColor="#9DB8A5"
           />
 
-          {/* Save Button */}
-          <TouchableOpacity style={styles.saveBtn}>
-            <Text style={styles.saveBtnText}>Save Changes</Text>
-          </TouchableOpacity>
+          {/* Save and Logout Buttons on the same line */}
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', marginTop: 10, marginBottom: 20 }}>
+            <View style={{ marginRight: 12 }}>
+              <LogoutButton />
+            </View>
+            <TouchableOpacity style={styles.saveBtn}>
+              <Text style={styles.saveBtnText}>Save Changes</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </ScrollView>
+    </ScrollView>
+
 
       {/* Bottom Navigation */}
       <View style={styles.bottomNav}>

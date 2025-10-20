@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 16,
-    marginTop: 18, // Push header down from the top
+    marginTop: 28, // Push header down from the top
   },
   header: {
     fontSize: 20,

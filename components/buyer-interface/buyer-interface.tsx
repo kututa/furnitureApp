@@ -363,6 +363,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     marginBottom: 12,
+    marginTop: 28,
   },
   searchInput: {
     flex: 1,
