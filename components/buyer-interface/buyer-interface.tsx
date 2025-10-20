@@ -529,6 +529,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: 'transparent',
+    
     // No height here; inner bar controls height
   },
   bottomNav: {
@@ -542,6 +543,7 @@ const styles = StyleSheet.create({
     // Responsive bottom padding for nav bar/home indicator
     paddingBottom: Platform.OS === 'ios' ? 10 : 16, // iOS: extra for home indicator, Android: for nav bar
     // The SafeAreaView will add more if needed
+    marginBottom: -3,
   },
   rateBtn: {
     marginTop: 18,
