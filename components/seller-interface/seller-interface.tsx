@@ -1,12 +1,32 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import React, { useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import SellerManageListing from '../sellerManageListing/SellerManageListing';
+import SellerProducts from '../sellerproducts/upload';
+import SellerProfile from '../sellerprofile/SellerProfile';
+import SellerReviewsFromBuyers from '../sellerReviewsFromBuyers/SellerReviewsFromBuyers';
 
 type SellerInterfaceProps = {
   onBack?: () => void;
 };
 
 const SellerInterface: React.FC<SellerInterfaceProps> = ({ onBack }) => {
+  const [showUpload, setShowUpload] = useState(false);
+  const [showManageListing, setShowManageListing] = useState(false);
+  const [showProfile, setShowProfile] = useState(false);
+  const [showReviews, setShowReviews] = useState(false);
+  if (showUpload) {
+    return <SellerProducts onClose={() => setShowUpload(false)} />;
+  }
+  if (showManageListing) {
+    return <SellerManageListing onClose={() => setShowManageListing(false)} />;
+  }
+  if (showProfile) {
+    return <SellerProfile onClose={() => setShowProfile(false)} />;
+  }
+  if (showReviews) {
+    return <SellerReviewsFromBuyers onClose={() => setShowReviews(false)} />;
+  }
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -45,33 +65,33 @@ const SellerInterface: React.FC<SellerInterfaceProps> = ({ onBack }) => {
       </View>
 
       {/* Add New Product */}
-      <TouchableOpacity style={styles.addBtn}>
+      <TouchableOpacity style={styles.addBtn} onPress={() => setShowUpload(true)}>
         <Text style={styles.addBtnText}>+ Add New Product</Text>
       </TouchableOpacity>
 
       {/* Quick Actions */}
       <Text style={styles.quickActionsTitle}>Quick Actions</Text>
       <View style={styles.quickActionRow}>
-        <View style={styles.quickActionBox}>
+        <TouchableOpacity style={styles.quickActionBox} onPress={() => setShowManageListing(true)}>
           <Feather name="list" size={20} color="#7CB798" style={{ marginRight: 8 }} />
           <Text style={styles.quickActionText}>Manage Listings</Text>
-        </View>
+        </TouchableOpacity>
         <Ionicons name="chevron-forward" size={20} color="#222" />
       </View>
       <View style={styles.quickActionRow}>
-        <View style={styles.quickActionBox}>
+        <TouchableOpacity style={styles.quickActionBox} onPress={() => setShowReviews(true)}>
           <Feather name="bar-chart-2" size={20} color="#7CB798" style={{ marginRight: 8 }} />
-          <Text style={styles.quickActionText}>View Sales Reports</Text>
-        </View>
+          <Text style={styles.quickActionText}>View Product Reviews</Text>
+        </TouchableOpacity>
         <Ionicons name="chevron-forward" size={20} color="#222" />
       </View>
 
       {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
         <Ionicons name="home-outline" size={24} color="#7CB798" />
-        <Ionicons name="search-outline" size={24} color="#7CB798" />
-        <Feather name="shopping-cart" size={24} color="#7CB798" />
-        <Ionicons name="person-outline" size={24} color="#7CB798" />
+        <TouchableOpacity onPress={() => setShowProfile(true)}>
+          <Ionicons name="person-outline" size={24} color="#7CB798" />
+        </TouchableOpacity>
       </View>
     </View>
   );
