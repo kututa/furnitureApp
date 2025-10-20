@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 18,
-    marginTop: 8,
+    marginTop: 58,
   },
   headerTitle: {
     fontSize: 18,

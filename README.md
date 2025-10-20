@@ -1,43 +1,94 @@
-# Welcome to your Expo app 👋
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+# FurnitureApp
 
-## Get started
+FurnitureApp is a cross-platform application designed to facilitate buying and selling furniture. It provides interfaces for buyers and sellers, allowing users to register, log in, manage profiles, list products, add items to cart, checkout, and review transactions.
 
-1. Install dependencies
+## Features
 
-   ```bash
-   npm install
-   ```
+- **Buyer Interface**: Browse products, manage cart, checkout, view receipts, and leave reviews.
+- **Seller Interface**: Register as a seller, manage listings, upload products, view profile, and receive reviews from buyers.
+- **Authentication**: User registration and login functionality.
+- **Profile Management**: Separate profile management for buyers and sellers.
+- **Cart & Checkout**: Add items to cart and complete purchases with a checkout flow.
+- **Review System**: Buyers can review products and sellers; sellers can view feedback.
 
-2. Start the app
+## Project Structure
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+app.json
+eslint.config.js
+expo-env.d.ts
+package.json
+README.md
+... 
+app/
+   _layout.tsx
+   index.tsx
+   register.tsx
+assets/
+   images/
+components/
+   buyer-interface/
+      buyer-interface.tsx
+   buyerprofile/
+      profile.tsx
+   cart/
+      cart.tsx
+      index.ts
+   checkout/
+      checkout.tsx
+      index.ts
+   login/
+      login.tsx
+   receipt/
+      index.ts
+      receipt.tsx
+   register/
+      register.tsx
+   review-interface/
+      review-interface.tsx
+   seller-interface/
+      seller-interface.tsx
+   sellerManageListing/
+      SellerManageListing.tsx
+   sellerproducts/
+      upload.tsx
+   sellerprofile/
+      SellerProfile.tsx
+   sellerReviewsFromBuyers/
+      SellerReviewsFromBuyers.tsx
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Getting Started
 
-## Learn more
+1. **Install dependencies**:
+    ```sh
+    npm install
+    ```
+2. **Start the development server**:
+    ```sh
+    npm start
+    ```
+3. **Run on device/emulator**:
+    Follow Expo instructions to run on iOS, Android, or web.
 
-To learn more about developing your project with Expo, look at the following resources:
+## Technologies Used
+
+- React Native
+- Expo
+- TypeScript
+- ESLint
+
+## Contributing
+
+Contributions are welcome! Please fork the repository and submit a pull request.
+
+## License
+
+This project is licensed under the MIT License.
+
+---
+Thanks for checking out FurnitureApp!
 
 - [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
 - [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
