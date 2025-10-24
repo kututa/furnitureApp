@@ -1,4 +1,4 @@
-import { getOrder, order } from "@/SERVICE/api";
+import { getOrder, order, getBuyerOrders, getSellerOrders, updateOrderStatus as updateOrderStatusApi } from "@/SERVICE/api";
 import { Order, makeOrder } from "@/types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
@@ -14,10 +14,10 @@ interface OrderState {
 	createOrder: (orderData: makeOrder) => Promise<Order>;
 
 	// Fetch orders (for seller/buyer)
-	fetchOrders: (userId: string) => Promise<void>;
+	fetchOrders: (userId: string, userRole?: "buyer" | "seller") => Promise<void>;
 
 	// Update order status
-	updateOrderStatus: (orderId: string, status: Order["paymentStatus"]) => void;
+	updateOrderStatus: (orderId: string, status: string) => Promise<void>;
 
 	// Clear orders
 	clearOrders: () => void;
@@ -50,7 +50,7 @@ export const useOrderStore = create<OrderState>()(
 							isLoading: false,
 						}));
 
-						console.log("✅ Order created successfully:", newOrder.id);
+						console.log(" Order created successfully:", newOrder.id);
 						return newOrder;
 					} else {
 						throw new Error(response.message || "Failed to create order");
@@ -66,20 +66,50 @@ export const useOrderStore = create<OrderState>()(
 				}
 			},
 
-			fetchOrders: async (userId: string) => {
+			fetchOrders: async (userId: string, userRole?: "buyer" | "seller") => {
 				set({ isLoading: true, error: null });
 				try {
-					console.log("📋 Fetching orders for user:", userId);
-					const response = await getOrder(userId);
-
+					console.log("📋 Fetching orders for user:", userId, "role:", userRole);
+					
+					 
+					const response = userRole === "buyer" 
+						? await getBuyerOrders(userId)
+						: await getSellerOrders(userId);
+						
 					const ordersArray = response?.orders || [];
+					
+					// Transform orders to ensure consistent structure
+					const transformedOrders = ordersArray.map((order: any) => ({
+						id: order._id || order.id,
+						_id: order._id || order.id,
+						orderNumber: order.orderNumber,
+						 
+						buyer: typeof order.buyer === 'object' && order.buyer?._id 
+							? order.buyer._id 
+							: order.buyer,
+						seller: typeof order.seller === 'object' && order.seller?._id 
+							? order.seller._id 
+							: order.seller,
+						items: order.items || [],
+						subTotal: order.subTotal,
+						shipping: order.shipping,
+						total: order.total,
+						paymentMethod: order.paymentMethod,
+						paymentStatus: order.paymentStatus,
+						status: order.status,  
+						shippingInfo: order.shippingInfo,
+						mpesaReceiptNumber: order.mpesaReceiptNumber,
+						mpesaCheckoutRequestID: order.mpesaCheckoutRequestID,
+						createdAt: order.createdAt,
+						updatedAt: order.updatedAt,
+					}));
 
 					set({
-						orders: ordersArray,
+						orders: transformedOrders,
 						isLoading: false,
 					});
-
-					console.log(`✅ Fetched ${ordersArray.length} orders`);
+					
+					console.log(` Fetched ${ordersArray.length} orders for ${userRole}`);
 				} catch (err: any) {
 					console.error("❌ Failed to fetch orders:", err);
 					set({
@@ -90,20 +120,37 @@ export const useOrderStore = create<OrderState>()(
 				}
 			},
 
-			updateOrderStatus: (orderId: string, status: Order["paymentStatus"]) => {
-				set((state) => ({
-					orders: state.orders.map((order) =>
-						order.id === orderId || order._id === orderId
-							? { ...order, paymentStatus: status }
-							: order
-					),
-					currentOrder:
-						state.currentOrder?.id === orderId ||
-						state.currentOrder?._id === orderId
-							? { ...state.currentOrder, paymentStatus: status }
-							: state.currentOrder,
-				}));
-				console.log(`✅ Order ${orderId} status updated to ${status}`);
+			updateOrderStatus: async (orderId: string, status: string) => {
+				set({ isLoading: true, error: null });
+				try {
+					console.log(`📋 Updating order ${orderId} status to ${status}`);
+					
+					// Update backend
+					const response = await updateOrderStatusApi(orderId, status);
+					
+					// Update local state optimistically
+					set((state) => ({
+						orders: state.orders.map((order) =>
+							order.id === orderId || order._id === orderId
+								? { ...order, status }
+								: order
+						),
+						currentOrder:
+							state.currentOrder?.id === orderId || state.currentOrder?._id === orderId
+								? { ...state.currentOrder, status }
+								: state.currentOrder,
+						isLoading: false,
+					}));
+					
+					console.log(` Order ${orderId} status updated to ${status}`);
+				} catch (err: any) {
+					console.error("❌ Failed to update order status:", err);
+					set({
+						error: err?.message || "Failed to update order status",
+						isLoading: false,
+					});
+					throw err;
+				}
 			},
 
 			clearOrders: () => {

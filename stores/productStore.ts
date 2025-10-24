@@ -8,6 +8,7 @@ import {
 	getProductListing,
 	getProducts,
 	updateProduct,
+	updateProductWithImage,
 	updateStock,
 } from "@/SERVICE/api";
 
@@ -21,6 +22,7 @@ interface ProductStore {
 	fetchProducts: () => Promise<void>;
 	fetchProduct: (id: string) => Promise<Product | null>;
 	fetchSellersListings: (sellerId: string) => Promise<void>;
+	updateProductWithImage: (id: string, formData: FormData) => Promise<void>;
 }
 
 export const useProductStore = create<ProductStore>()((set) => ({
@@ -152,6 +154,30 @@ export const useProductStore = create<ProductStore>()((set) => ({
 		} catch (error) {
 			console.error("Error fetching products:", error);
 			set({ isLoading: false, products: [] });
+		}
+	},
+	updateProductWithImage: async (id: string, formData: FormData) => {
+		try {
+			set({ isLoading: true });
+			const response = await updateProductWithImage(id, formData);
+			console.log("Product updated:", response);
+
+			const updatedProduct = response.product || response.data || response;
+			const mappedProduct = {
+				...updatedProduct,
+				id: updatedProduct._id || updatedProduct.id,
+			};
+
+			set((state) => ({
+				products: state.products.map((p) =>
+					p.id === id ? mappedProduct : p
+				),
+				isLoading: false,
+			}));
+		} catch (error) {
+			console.error("Error updating product:", error);
+			set({ isLoading: false });
+			throw error;
 		}
 	},
 }));

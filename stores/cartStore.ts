@@ -18,7 +18,7 @@ type CartState = {
 
 	// server sync
 	fetchCart: () => Promise<void>;
-	setUserId: (userId: string | null) => void; // ✅ Add this line
+	setUserId: (userId: string | null) => void;  
 
 	// derived
 	subtotal: () => number;
@@ -52,7 +52,10 @@ export const useCartStore = create<CartState>()(
 			userId: null,
 
 			addItem: async (product, qty = 1) => {
-				// optimistic update
+				// Store previous state for potential revert
+				const prevItems = get().items;
+
+				// Optimistic update
 				set((state) => {
 					const idx = state.items.findIndex((i) => i.product.id === product.id);
 					if (idx > -1) {
@@ -72,8 +75,10 @@ export const useCartStore = create<CartState>()(
 						productId: product.id,
 						quantity: qty,
 					});
-					console.log("✅ Product added to cart");
+					console.log("Product added to cart");
 				} catch (err: any) {
+					// Revert optimistic update on failure
+					set({ items: prevItems });
 					console.error("Failed to add to cart:", err);
 					set({ error: err?.message || "Failed to add to cart" });
 					throw err;
@@ -115,7 +120,7 @@ export const useCartStore = create<CartState>()(
 					const data = await getCart();
 					const items = mapServerCartToItems(data);
 					set({ items, isLoading: false });
-					console.log("✅ Cart fetched successfully");
+					console.log(" Cart fetched successfully");
 				} catch (err: any) {
 					console.error("Failed to fetch cart:", err);
 					set({
@@ -128,7 +133,7 @@ export const useCartStore = create<CartState>()(
 
 			setUserId: (userId: string | null) => {
 				set({ userId });
-				console.log("✅ Cart userId set:", userId);
+				console.log("Cart userId set:", userId);
 			},
 
 			subtotal: () =>

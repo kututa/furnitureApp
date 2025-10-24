@@ -63,9 +63,9 @@ const BuyerInterface = () => {
 	const handleAddToCart = async (product: any) => {
 		try {
 			await addItem(product, 1);
-			console.log("✅ Product added to cart");
+			console.log("Product added to cart");
 		} catch (error) {
-			console.error("❌ Failed to add product to cart:", error);
+			console.error("Failed to add product to cart:", error);
 		}
 	};
 
@@ -127,13 +127,13 @@ const BuyerInterface = () => {
 		const order = orderDetails.order;
 		const shippingDetails = orderDetails.shippingDetails;
 
-		// ✅ Use actual order data with updated field names
+	
 		setLastOrder({
 			items: uiCartItems,
-			subtotal: order.subTotal || subtotal, // ✅ Backend uses subTotal
+			subtotal: order.subTotal || subtotal,
 			shipping: order.shipping || SHIPPING_COST,
 			total: order.total || total,
-			orderNumber: order.orderNumber || `#${order.id || order._id}`, // ✅ Use orderNumber from backend
+			orderNumber: order.orderNumber || `#${order.id || order._id}`, 
 			deliveryDate: new Date(
 				Date.now() + 7 * 24 * 60 * 60 * 1000
 			).toLocaleDateString("en-KE", {
@@ -144,12 +144,12 @@ const BuyerInterface = () => {
 			paymentMethod: "M-pesa",
 			paymentStatus: order.paymentStatus,
 			shippingDetails,
-			mpesaCheckoutRequestID: order.mpesaCheckoutRequestID, // ✅ Add M-Pesa request ID
+			mpesaCheckoutRequestID: order.mpesaCheckoutRequestID, 
 		});
 
 		setShowCheckout(false);
 		setShowReceipt(true);
-		console.log("✅ Order completed, showing receipt");
+		console.log("Order completed, showing receipt");
 	};
 
 	if (showProfile) {

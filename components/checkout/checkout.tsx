@@ -1,7 +1,9 @@
+import { api } from "@/SERVICE/api";
+
 import { useAuthStore } from "@/stores/authStore";
 import { useCartStore } from "@/stores/cartStore";
 import { useOrderStore } from "@/stores/orderStore";
-import { makeOrder } from "@/types";
+import { makeOrder, Order } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
@@ -54,6 +56,11 @@ const Checkout: React.FC<CheckoutProps> = ({
 	const [email, setEmail] = useState(user?.email || "");
 	const [mpesaPhone, setMpesaPhone] = useState("");
 
+	// New state variables
+	const [lastOrder, setLastOrder] = useState<Order | null>(null);
+	const [showCheckout, setShowCheckout] = useState(false);
+	const [showReceipt, setShowReceipt] = useState(false);
+
 	const handleConfirmPayment = async () => {
 		// Validation
 		if (!fullName.trim()) {
@@ -104,27 +111,27 @@ const Checkout: React.FC<CheckoutProps> = ({
 				.replace(/^0/, "254")
 				.replace(/^\+/, "");
 
-			// ✅ Create order data matching backend expectations
+			
 			const orderData: makeOrder = {
-				buyer: user.id, // ✅ Added buyer field
+				buyer: user.id, 
 				items: cartItems.map((item) => ({
 					product: item.product.id,
 					quantity: item.quantity,
 				})),
 				phoneNumber: formattedPhone,
-				paymentMethod: "mpesa", // ✅ Lowercase to match backend
+				paymentMethod: "mpesa",
 				shippingInfo: {
 					city: city.trim(),
 					address: address.trim(),
 				},
 			};
 
-			console.log("📦 Creating order with data:", orderData);
+			console.log("Creating order with data:", orderData);
 
 			// Create the order
 			const newOrder = await createOrder(orderData);
 
-			console.log("✅ Order created successfully:", newOrder);
+			console.log("Order created successfully:", newOrder);
 
 			// Clear the cart after successful order
 			clearCart();
@@ -151,6 +158,49 @@ const Checkout: React.FC<CheckoutProps> = ({
 				} has been placed successfully. You will receive an M-Pesa prompt on ${mpesaPhone}.`,
 				[{ text: "OK" }]
 			);
+
+			// Poll transaction status
+			const pollTransactionStatus = async (transactionId: string) => {
+				const maxAttempts = 30; // 5 minutes
+				for (let i = 0; i < maxAttempts; i++) {
+					try {
+						const response = await api.get(
+							`/mpesa/transaction/${transactionId}`
+						);
+						const { transaction, order } = response.data;
+
+						if (transaction.status === "success" && order) {
+							// Payment confirmed, update UI
+							setLastOrder(order);
+							setShowCheckout(false);
+							setShowReceipt(true);
+							return;
+						} else if (transaction.status === "failed") {
+							Alert.alert(
+								"Payment Failed",
+								"Your M-Pesa payment was not successful."
+							);
+							return;
+						}
+					} catch (err) {
+						console.log("Polling transaction status...", err);
+					}
+
+					await new Promise((resolve) => setTimeout(resolve, 10000)); // Wait 10 seconds
+				}
+				Alert.alert(
+					"Payment Timeout",
+					"Payment confirmation is taking longer than expected."
+				);
+			};
+
+			// Get transactionId from newOrder
+			const transactionId = newOrder.transactionId || newOrder.transaction?.id;
+
+			// Start polling if transactionId is available
+			if (transactionId) {
+				pollTransactionStatus(transactionId);
+			}
 		} catch (error: any) {
 			console.error("❌ Failed to create order:", error);
 			Alert.alert(

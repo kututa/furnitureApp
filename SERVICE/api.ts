@@ -95,7 +95,7 @@ export const addProduct = async (formData: FormData) => {
 
 export const updateProduct = async (id: string, productData: Product) => {
 	try {
-		const response = await api.put(`/products/${id}`, productData); // ✅ /products not /product
+		const response = await api.put(`/products/${id}`, productData);  
 		return response.data;
 	} catch (err) {
 		console.error("Failed to update Product", err);
@@ -129,7 +129,7 @@ export const getProduct = async (id: string) => {
 
 export const deleteProduct = async (id: string) => {
 	try {
-		const response = await api.delete(`/products/${id}`); // ✅ /products not /product
+		const response = await api.delete(`/products/${id}`); 
 		return response.data;
 	} catch (err) {
 		console.error("Failed to delete Product", err);
@@ -139,7 +139,7 @@ export const deleteProduct = async (id: string) => {
 
 export const updateStock = async (id: string, stock: number) => {
 	try {
-		const response = await api.patch(`/products/${id}/stock`, { stock }); // ✅ Better endpoint
+		const response = await api.patch(`/products/${id}/stock`, { stock });  
 		return response.data;
 	} catch (err) {
 		console.error("Failed to update stock", err);
@@ -237,7 +237,7 @@ export const getReviews = async (sellerId: string) => {
 export const order = async (payload: makeOrder) => {
 	try {
 		// Backend extracts userId from JWT token (req.user.id)
-		const response = await api.post("/order/", payload);
+		const response = await api.post("/order/initiate-payment", payload);
 		return response.data;
 	} catch (err) {
 		console.error("Failed to make order:", err);
@@ -250,7 +250,7 @@ export const order = async (payload: makeOrder) => {
 
 export const getOrder = async (id: string) => {
 	try {
-		// ✅ Fixed typo: /order not /oder
+		 
 		const response = await api.get(`/order/seller/${id}`); // or /order/buyer/${id}
 		return response.data;
 	} catch (err) {
@@ -262,8 +262,7 @@ export const getOrder = async (id: string) => {
 	}
 };
 
-// ✅ Add function to get order by ID
-export const getOrderById = async (orderId: string) => {
+ export const getOrderById = async (orderId: string) => {
 	try {
 		const response = await api.get(`/order/${orderId}`);
 		return response.data;
@@ -274,4 +273,64 @@ export const getOrderById = async (orderId: string) => {
 		}
 		throw err;
 	}
+};
+
+export const getBuyerOrders = async (buyerId: string) => {
+	try {
+		const response = await api.get(`/order/buyer/${buyerId}`);
+		return response.data;
+	} catch (err) {
+		console.error("Failed to get buyer orders:", err);
+		if (axios.isAxiosError(err)) {
+			throw new Error(
+				err.response?.data?.message || "Failed to get buyer orders"
+			);
+		}
+		throw err;
+	}
+};
+
+export const getSellerOrders = async (sellerId: string) => {
+	try {
+		const response = await api.get(`/order/seller/${sellerId}`);
+		return response.data;
+	} catch (err) {
+		console.error("Failed to get seller orders:", err);
+		if (axios.isAxiosError(err)) {
+			throw new Error(
+				err.response?.data?.message || "Failed to get seller orders"
+			);
+		}
+		throw err;
+	}
+};
+
+export const updateOrderStatus = async (orderId: string, status: string) => {
+    try {
+        const response = await api.put(`/order/${orderId}`, { status });
+        return response.data;
+    } catch (err) {
+        console.error("Failed to update order status:", err);
+        if (axios.isAxiosError(err)) {
+            throw new Error(err.response?.data?.message || "Failed to update order status");
+        }
+        throw err;
+    }
+};
+
+export const updateProductWithImage = async (id: string, formData: FormData) => {
+    try {
+        const response = await api.put(`/products/${id}`, formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
+        return response.data;
+    } catch (err) {
+        console.error("Failed to update product with image:", err);
+        if (axios.isAxiosError(err)) {
+            throw new Error(err.response?.data?.message || "Failed to update product");
+        }
+        throw err;
+    }
 };

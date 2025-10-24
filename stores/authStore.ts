@@ -39,7 +39,7 @@ export const useAuthStore = create<AuthState>()(
 				set({ isLoading: true, error: null });
 				try {
 					const response = await loginUser(email, password);
-					setAuthToken(response.token); // ✅ Set token for API calls
+					setAuthToken(response.token);  
 					set({
 						user: response.user,
 						token: response.token,
@@ -61,7 +61,7 @@ export const useAuthStore = create<AuthState>()(
 				set({ isLoading: true, error: null });
 				try {
 					const response = await registerUser(userData);
-					setAuthToken(response.token); // ✅ Set token for API calls
+					setAuthToken(response.token);  
 					set({
 						user: response.user,
 						token: response.token,
@@ -98,7 +98,7 @@ export const useAuthStore = create<AuthState>()(
 				}
 			},
 			logout: () => {
-				setAuthToken(null); // ✅ Clear token from API
+				setAuthToken(null);  
 				set({
 					user: null,
 					token: null,
@@ -108,12 +108,12 @@ export const useAuthStore = create<AuthState>()(
 			},
 		}),
 		{
-			name: "auth_store", // ✅ Storage key name
-			storage: createJSONStorage(() => AsyncStorage), // ✅ Use AsyncStorage
+			name: "auth_store",  
+			storage: createJSONStorage(() => AsyncStorage),  
 			partialize: (state) => ({
 				user: state.user,
 				token: state.token,
-			}), // ✅ Only persist user and token
+			}),  
 		}
 	)
 );

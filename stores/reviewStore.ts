@@ -26,9 +26,9 @@ export const useReviewStore = create<ReviewState>()(
 			leaveReview: async (product, content, stars) => {
 				set({ isLoading: true, error: null });
 				try {
-					console.log("Submitting review:", { product, content, stars }); // ✅ Debug log
+					console.log("Submitting review:", { product, content, stars }); 
 					const response = await addReview({ product, content, stars });
-					console.log("Review response:", response); // ✅ Debug log
+					console.log("Review response:", response); 
 
 					if (response.success) {
 						set((state) => ({
@@ -57,7 +57,7 @@ export const useReviewStore = create<ReviewState>()(
 					const response = await getReviews(sellerId);
 					console.log("Fetch reviews response:", response);
 
-					// ✅ Backend returns { success: true, count: number, reviews: [...] }
+					 
 					const reviewsArray = response?.reviews || [];
 
 					console.log("Parsed reviews:", reviewsArray.length, "reviews");

@@ -12,23 +12,35 @@ export default function Index() {
 	>("login");
 	const { user, token } = useAuthStore();
 	const { setUserId, fetchCart } = useCartStore();
+	const [hydrated, setHydrated] = useState(false);
+
+	
+	useEffect(() => {
+		const unsub = useAuthStore.persist.onHydrate(() => {});
+		useAuthStore.persist.onFinishHydration(() => setHydrated(true));
+		if (useAuthStore.persist.hasHydrated()) setHydrated(true);
+		return () => {
+			unsub?.();
+		};
+	}, []);
 
 	useEffect(() => {
+		if (!hydrated) return; 
+
 		if (!user || !token) {
 			setScreen("login");
 			setUserId(null);
-			console.log("⚠️ No user/token - redirecting to login");
+			console.log("No user/token - redirecting to login");
 			return;
 		}
 
-		// ✅ Token is already set in _layout.tsx, just set userId
 		console.log("👤 User logged in:", user.id, "Role:", user.role);
 		setUserId(user.id);
 
 		if (user.role === "buyer") {
 			console.log("🛒 Fetching cart for buyer...");
 			fetchCart()
-				.then(() => console.log("✅ Cart loaded"))
+				.then(() => console.log("Cart loaded"))
 				.catch((err) => {
 					console.error("❌ Cart fetch failed:", err.message);
 				});
@@ -38,7 +50,11 @@ export default function Index() {
 		} else {
 			setScreen("login");
 		}
-	}, [user, token]);
+	}, [user, token, hydrated]);
+
+	if (!hydrated) {
+		return null; 
+	}
 
 	if (screen === "buyer") {
 		return <BuyerInterface />;
@@ -53,7 +69,7 @@ export default function Index() {
 		<Login
 			onShowRegister={() => setScreen("register")}
 			onLogin={() => {
-				// Screen will be set by useEffect when user/token changes
+				
 			}}
 		/>
 	);

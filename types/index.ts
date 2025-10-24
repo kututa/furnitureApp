@@ -45,27 +45,32 @@ export interface Cart {
 export interface Order {
 	id: string;
 	_id?: string;
-	buyer?: string; // ✅ Changed from 'user' to 'buyer' to match backend
-	user?: string; // ✅ Keep for backward compatibility
+	buyer?: Buyer; 
+	user?: string;  
 	seller?: string;
-	orderNumber?: string; // ✅ Added orderNumber
+	orderNumber?: string;  
+	transactionId?: string;  
+	transaction?: {
+		id: string;
+		status: string;
+	};
 	products: {
 		product: Product;
 		quantity: number;
 	}[];
 	items?: {
-		// ✅ Added items (backend uses this field)
+	 
 		product: string;
 		name: string;
 		price: number;
 		quantity: number;
 		image: string;
 	}[];
-	subTotal?: number; // ✅ Added subTotal
-	shipping?: number; // ✅ Added shipping
-	total?: number; // ✅ Added total
-	totalAmount?: number; // ✅ Keep for backward compatibility
-	paymentMethod: "mpesa"; // ✅ Changed to lowercase
+	subTotal?: number;  
+	shipping?: number;  
+	total?: number;  
+	totalAmount?: number;  
+	paymentMethod: "mpesa";  
 	paymentStatus: "pending" | "paid" | "failed" | "cancelled" | "timeout";
 	phoneNumber?: string;
 	mpesaCheckoutRequestID?: string;
@@ -74,19 +79,20 @@ export interface Order {
 		city: string;
 		address: string;
 	};
+	status: string
 	createdAt?: string;
 	updatedAt?: string;
 	resultDesc?: string;
 }
 
 export interface makeOrder {
-	buyer?: string; // ✅ Added buyer field (backend uses this)
+	buyer?: string; 
 	items: {
 		product: string;
 		quantity: number;
 	}[];
 	phoneNumber: string;
-	paymentMethod: "mpesa"; // ✅ Changed to lowercase to match backend
+	paymentMethod: "mpesa";  
 	shippingInfo: {
 		city: string;
 		address: string;
@@ -122,4 +128,9 @@ export interface Review {
 		| string;
 	createdAt?: string;
 	updatedAt?: string;
+}
+interface Buyer {
+	_id: string;
+	name?: string;
+	email?: string;
 }

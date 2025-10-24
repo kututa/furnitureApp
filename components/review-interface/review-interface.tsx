@@ -22,8 +22,8 @@ const ReviewInterface = ({
 	productId: string;
 }) => {
 	const [review, setReview] = useState("");
-	const [stars, setStars] = useState(0); // State to hold the selected star rating
-	const { leaveReview, isLoading, error } = useReviewStore(); // Access the review store
+	const [stars, setStars] = useState(0); 
+	const { leaveReview, isLoading, error } = useReviewStore(); 
 
 	const handleSubmit = async () => {
 		if (review.trim() === "" || stars === 0) {
@@ -31,9 +31,9 @@ const ReviewInterface = ({
 			return;
 		}
 		await leaveReview(productId, review, stars);
-		setReview(""); // Clear the review input
-		setStars(0); // Reset the star rating
-		onClose(); // Close the modal after submission
+		setReview(""); 
+		setStars(0);
+		onClose();  
 	};
 
 	return (
