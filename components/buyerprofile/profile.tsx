@@ -1,9 +1,10 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, FlatList, Image, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, ToastAndroid, TouchableOpacity, View } from 'react-native';
 
 import { useRouter } from 'expo-router';
+import { useAuthStore } from '@/stores/authStore';
 type Address = { id: string; name: string; location: string };
 type Order = { id: string; status: string; summary: string; date: string };
 
@@ -11,19 +12,24 @@ const initialAddresses = [
   { id: '1', name: 'Home', location: 'Nairobi, Kenya' },
   { id: '2', name: 'Office', location: 'Mombasa, Kenya' },
 ];
-const LogoutButton = () => {
-  const router = useRouter();
-  return (
-    <View style={logoutStyles.logoutContainer}>
-      <TouchableOpacity
-        style={logoutStyles.logoutButton}
-        activeOpacity={0.8}
-  onPress={() => router.replace('/')}
-      >
-        <Text style={logoutStyles.logoutText}>Logout</Text>
-      </TouchableOpacity>
-    </View>
-  );
+const LogoutButton: React.FC<{ onLoggedOut?: () => void }> = ({
+	onLoggedOut,
+}) => {
+	const { logout } = useAuthStore();
+	return (
+		<View style={logoutStyles.logoutContainer}>
+			<TouchableOpacity
+				style={logoutStyles.logoutButton}
+				activeOpacity={0.8}
+				onPress={() => {
+					logout();
+					onLoggedOut?.(); // ensure UI navigates away immediately
+				}}
+			>
+				<Text style={logoutStyles.logoutText}>Logout</Text>
+			</TouchableOpacity>
+		</View>
+	);
 };
 
 const initialOrders = [
@@ -48,6 +54,25 @@ const Profile: React.FC<ProfileProps> = ({ onBack }) => {
   const [newAddress, setNewAddress] = useState({ name: '', location: '' });
   const [orderHistoryModal, setOrderHistoryModal] = useState(false);
   const [orders] = useState(initialOrders);
+  const {user, getProfile} = useAuthStore()
+const id = user?.id
+
+
+useEffect(() => {
+  const profile = async() =>{
+    if(!id) return
+    try{
+      await getProfile(id)
+    }catch(err){
+      console.error("Failed to fetch user profile",err)
+    }
+  }
+
+  if(!user){
+    profile()
+  }
+}, [user, getProfile, id])
+  
 
   // Profile image picker
   const pickImage = async () => {
@@ -128,7 +153,7 @@ const Profile: React.FC<ProfileProps> = ({ onBack }) => {
           />
           <View style={styles.editIcon}><Feather name="edit-2" size={16} color="#fff" /></View>
         </TouchableOpacity>
-        <Text style={styles.profileName}>{name}</Text>
+        <Text style={styles.profileName}>{user?.fullName}</Text>
         <Text style={styles.profileRole}>Buyer</Text>
 
         <Text style={styles.sectionTitle}>Personal Information</Text>
@@ -167,7 +192,7 @@ const Profile: React.FC<ProfileProps> = ({ onBack }) => {
         </View>
       {/* Place the Logout button near the bottom, spaced from other elements */}
       <View style={{ flex: 1 }} />
-      <LogoutButton />
+      <LogoutButton onLoggedOut={onBack}/>
     </ScrollView>
 
       {/* Edit Address Modal */}

@@ -1,10 +1,13 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import SellerManageListing from '../sellerManageListing/SellerManageListing';
 import SellerProducts from '../sellerproducts/upload';
 import SellerProfile from '../sellerprofile/SellerProfile';
 import SellerReviewsFromBuyers from '../sellerReviewsFromBuyers/SellerReviewsFromBuyers';
+import { useAuthStore } from '@/stores/authStore';
+import { useProductStore } from '@/stores/productStore';
+import { useReviewStore } from '@/stores/reviewStore';
 
 type SellerInterfaceProps = {
   onBack?: () => void;
@@ -15,6 +18,47 @@ const SellerInterface: React.FC<SellerInterfaceProps> = ({ onBack }) => {
   const [showManageListing, setShowManageListing] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [showReviews, setShowReviews] = useState(false);
+    const { getProfile, user, token } = useAuthStore();
+      const { fetchSellersListings, products } = useProductStore();
+      const {fetchReviews, reviews} = useReviewStore()
+  const id = user?.id
+    useEffect(() => {
+      if(!token) return
+      const profile = async () => {
+        if (!id) return;
+        try {
+          await getProfile(id);
+        } catch (err) {
+          console.error("Failed to load profile", err);
+        }
+  
+       
+      };
+       if (!user) {
+          profile();
+        }
+    },[token, getProfile, user, id]);
+
+    useEffect(() => {
+
+    
+        if (id) {
+          fetchSellersListings(id);
+        } else {
+          console.error("No seller ID found - user might not be logged in");
+        }
+      }, [id, fetchSellersListings]);
+
+     useEffect(() => {
+				if (id) {
+					fetchReviews(id);
+				} else {
+					console.error("No seller ID found - user might not be logged in");
+				}
+			}, [id, fetchReviews]);
+
+    const totalListings = products?.length || 0;
+    const totalReviews = reviews?.length || 0
   if (showUpload) {
     return <SellerProducts onClose={() => setShowUpload(false)} />;
   }
@@ -44,7 +88,7 @@ const SellerInterface: React.FC<SellerInterfaceProps> = ({ onBack }) => {
           source={require('../../assets/images/avata.jpg')}
           style={styles.avatar}
         />
-        <Text style={styles.name}>Nigel Badi</Text>
+        <Text style={styles.name}>{user?.fullName}</Text>
         <Text style={styles.since}>Seller since 2021</Text>
       </View>
 
@@ -52,7 +96,7 @@ const SellerInterface: React.FC<SellerInterfaceProps> = ({ onBack }) => {
       <View style={styles.statsRow}>
         <View style={styles.statBox}>
           <Text style={styles.statLabel}>Total Listings</Text>
-          <Text style={styles.statValue}>25</Text>
+          <Text style={styles.statValue}>{totalListings}</Text>
         </View>
         <View style={styles.statBox}>
           <Text style={styles.statLabel}>Pending Orders</Text>
@@ -61,7 +105,7 @@ const SellerInterface: React.FC<SellerInterfaceProps> = ({ onBack }) => {
       </View>
       <View style={styles.statBoxFull}>
         <Text style={styles.statLabel}>Recent Reviews</Text>
-        <Text style={styles.statValue}>12</Text>
+        <Text style={styles.statValue}>{totalReviews}</Text>
       </View>
 
       {/* Add New Product */}

@@ -1,4 +1,6 @@
 
+
+import { useAuthStore } from '@/stores/authStore';
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -11,68 +13,106 @@ const Login: React.FC<LoginProps> = ({ onShowRegister, onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'buyer' | 'seller'>('buyer');
+  const {login, isLoading, error, user} = useAuthStore()
+
+  const handleSubmit = async () =>{
+    if(!email || !password) return
+    try{
+      await login(email, password)
+ if (user) {
+		onLogin?.({ role: user.role, email, password });
+ }
+    } catch(err){
+      console.error("Failed to login", err)
+    }
+  }
 
   return (
-    <View style={styles.container}>
-      {/* Spacer to push form down */}
-      <View style={{ height: 60 }} />
-      {/* Form */}
-      <View style={styles.formBox}>
-        <Text style={styles.label}>Email</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter your email"
-          placeholderTextColor="#7CB798"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
+		<View style={styles.container}>
+			{/* Spacer to push form down */}
+			<View style={{ height: 60 }} />
+			{/* Form */}
+			<View style={styles.formBox}>
+				<Text style={styles.label}>Email</Text>
+				<TextInput
+					style={styles.input}
+					placeholder="Enter your email"
+					placeholderTextColor="#7CB798"
+					value={email}
+					onChangeText={setEmail}
+					keyboardType="email-address"
+					autoCapitalize="none"
+				/>
 
-        <Text style={styles.label}>Password</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter password"
-          placeholderTextColor="#7CB798"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-        />
+				<Text style={styles.label}>Password</Text>
+				<TextInput
+					style={styles.input}
+					placeholder="Enter password"
+					placeholderTextColor="#7CB798"
+					value={password}
+					onChangeText={setPassword}
+					secureTextEntry
+				/>
 
-        <TouchableOpacity>
-          <Text style={styles.forgot}>Forgot Password?</Text>
-        </TouchableOpacity>
+				<TouchableOpacity>
+					<Text style={styles.forgot}>Forgot Password?</Text>
+				</TouchableOpacity>
 
-        <View style={styles.roleRow}>
-          <Pressable
-            style={[styles.roleBtn, role === 'buyer' && styles.roleBtnActive]}
-            onPress={() => setRole('buyer')}
-          >
-            <Text style={[styles.roleBtnText, role === 'buyer' && styles.roleBtnTextActive]}>Buyer</Text>
-          </Pressable>
-          <Pressable
-            style={[styles.roleBtn, role === 'seller' && styles.roleBtnActive, { marginLeft: 16 }]}
-            onPress={() => setRole('seller')}
-          >
-            <Text style={[styles.roleBtnText, role === 'seller' && styles.roleBtnTextActive]}>Seller</Text>
-          </Pressable>
-        </View>
+				<View style={styles.roleRow}>
+					<Pressable
+						style={[styles.roleBtn, role === "buyer" && styles.roleBtnActive]}
+						onPress={() => setRole("buyer")}
+					>
+						<Text
+							style={[
+								styles.roleBtnText,
+								role === "buyer" && styles.roleBtnTextActive,
+							]}
+						>
+							Buyer
+						</Text>
+					</Pressable>
+					<Pressable
+						style={[
+							styles.roleBtn,
+							role === "seller" && styles.roleBtnActive,
+							{ marginLeft: 16 },
+						]}
+						onPress={() => setRole("seller")}
+					>
+						<Text
+							style={[
+								styles.roleBtnText,
+								role === "seller" && styles.roleBtnTextActive,
+							]}
+						>
+							Seller
+						</Text>
+					</Pressable>
+				</View>
 
-        <TouchableOpacity
-          style={styles.loginBtn}
-          onPress={() => {
-            if (onLogin) onLogin({ role, email, password });
-          }}
-        >
-          <Text style={styles.loginBtnText}>Login</Text>
-        </TouchableOpacity>
-      </View>
-      {/* Move sign up link higher */}
-      <View style={{ flex: 1 }} />
-  <Text style={styles.signupText}>Don&apos;t have an account? <Text style={styles.signupLink} onPress={onShowRegister}>Sign up</Text></Text>
-      <View style={{ height: 24 }} />
-    </View>
-  );
+				<TouchableOpacity
+					style={styles.loginBtn}
+					disabled={isLoading}
+					onPress={handleSubmit}
+				>
+					<Text style={styles.loginBtnText}>Login</Text>
+				</TouchableOpacity>
+				{!!error && (
+					<Text style={{ color: "red", textAlign: "center" }}>{error}</Text>
+				)}
+			</View>
+			{/* Move sign up link higher */}
+			<View style={{ flex: 1 }} />
+			<Text style={styles.signupText}>
+				Don&apos;t have an account?{" "}
+				<Text style={styles.signupLink} onPress={onShowRegister}>
+					Sign up
+				</Text>
+			</Text>
+			<View style={{ height: 24 }} />
+		</View>
+	);
 };
 
 const styles = StyleSheet.create({

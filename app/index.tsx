@@ -1,30 +1,60 @@
-
-
-import React, { useState } from 'react';
-import BuyerInterface from '../components/buyer-interface/buyer-interface';
-import Login from '../components/login/login';
-import Register from '../components/register/register';
-import SellerInterface from '../components/seller-interface/seller-interface';
+import { useAuthStore } from "@/stores/authStore";
+import { useCartStore } from "@/stores/cartStore";
+import React, { useEffect, useState } from "react";
+import BuyerInterface from "../components/buyer-interface/buyer-interface";
+import Login from "../components/login/login";
+import Register from "../components/register/register";
+import SellerInterface from "../components/seller-interface/seller-interface";
 
 export default function Index() {
-  const [screen, setScreen] = useState<'login' | 'register' | 'buyer' | 'seller'>('login');
+	const [screen, setScreen] = useState<
+		"login" | "register" | "buyer" | "seller"
+	>("login");
+	const { user, token } = useAuthStore();
+	const { setUserId, fetchCart } = useCartStore();
 
-  if (screen === 'buyer') {
-    return <BuyerInterface />;
-  }
-  if (screen === 'seller') {
-    return <SellerInterface onBack={() => setScreen('login')} />;
-  }
-  if (screen === 'register') {
-    return <Register onShowLogin={() => setScreen('login')} />;
-  }
-  return (
-    <Login
-      onShowRegister={() => setScreen('register')}
-      onLogin={({ role }) => {
-        if (role === 'buyer') setScreen('buyer');
-        else if (role === 'seller') setScreen('seller');
-      }}
-    />
-  );
+	useEffect(() => {
+		if (!user || !token) {
+			setScreen("login");
+			setUserId(null);
+			console.log("⚠️ No user/token - redirecting to login");
+			return;
+		}
+
+		// ✅ Token is already set in _layout.tsx, just set userId
+		console.log("👤 User logged in:", user.id, "Role:", user.role);
+		setUserId(user.id);
+
+		if (user.role === "buyer") {
+			console.log("🛒 Fetching cart for buyer...");
+			fetchCart()
+				.then(() => console.log("✅ Cart loaded"))
+				.catch((err) => {
+					console.error("❌ Cart fetch failed:", err.message);
+				});
+			setScreen("buyer");
+		} else if (user.role === "seller") {
+			setScreen("seller");
+		} else {
+			setScreen("login");
+		}
+	}, [user, token]);
+
+	if (screen === "buyer") {
+		return <BuyerInterface />;
+	}
+	if (screen === "seller") {
+		return <SellerInterface onBack={() => setScreen("login")} />;
+	}
+	if (screen === "register") {
+		return <Register onShowLogin={() => setScreen("login")} />;
+	}
+	return (
+		<Login
+			onShowRegister={() => setScreen("register")}
+			onLogin={() => {
+				// Screen will be set by useEffect when user/token changes
+			}}
+		/>
+	);
 }
