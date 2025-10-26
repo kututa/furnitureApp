@@ -114,7 +114,7 @@ const Checkout: React.FC<CheckoutProps> = ({
 			
 			const orderData: makeOrder = {
 				buyer: user.id, 
-				items: cartItems.map((item) => ({
+				items: cartItems.map((item: any) => ({
 					product: item.product.id,
 					quantity: item.quantity,
 				})),

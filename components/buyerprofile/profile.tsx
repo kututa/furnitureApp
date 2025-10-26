@@ -49,8 +49,9 @@ interface ProfileProps {
 }
 
 const Profile: React.FC<ProfileProps> = ({ onBack }) => {
+	const { user, getProfile } = useAuthStore();
 	const [profileImage, setProfileImage] = useState<string | null>(null);
-	const [name, setName] = useState("Amani Hassan");
+	const [name, setName] = useState("");
 	const [email, setEmail] = useState("");
 	const [phone, setPhone] = useState("");
 	const [addresses, setAddresses] = useState(initialAddresses);
@@ -66,7 +67,6 @@ const Profile: React.FC<ProfileProps> = ({ onBack }) => {
 	const [addAddressModal, setAddAddressModal] = useState(false);
 	const [newAddress, setNewAddress] = useState({ name: "", location: "" });
 	const [showOrderHistory, setShowOrderHistory] = useState(false); 
-	const { user, getProfile } = useAuthStore();
 	const id = user?.id;
 
 	useEffect(() => {
@@ -83,6 +83,14 @@ const Profile: React.FC<ProfileProps> = ({ onBack }) => {
 			profile();
 		}
 	}, [user, getProfile, id]);
+
+	// Populate form fields with user data
+	useEffect(() => {
+		if (user) {
+			setName(user.fullName || "");
+			setEmail(user.email || "");
+		}
+	}, [user]);
 
 
 	if (showOrderHistory) {

@@ -1,4 +1,4 @@
-import { addTocart, getCart, updateCart as updateCartApi } from "@/SERVICE/api";
+import { addTocart, getCart, removeFromCart, updateCart as updateCartApi } from "@/SERVICE/api";
 import { CartItem, Product } from "@/types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { create } from "zustand";
@@ -13,7 +13,7 @@ type CartState = {
 	// basic ops
 	addItem: (product: Product, qty?: number) => Promise<void>;
 	setQuantity: (productId: string, qty: number) => void;
-	removeItem: (productId: string) => void;
+	removeItem: (productId: string) => Promise<void>;
 	clear: () => void;
 
 	// server sync
@@ -104,10 +104,24 @@ export const useCartStore = create<CartState>()(
 				});
 			},
 
-			removeItem: (productId) =>
+			removeItem: async (productId) => {
+				const prev = get().items;
+
+				// Optimistic update
 				set((state) => ({
 					items: state.items.filter((i) => i.product.id !== productId),
-				})),
+				}));
+
+				try {
+					await removeFromCart(productId);
+					console.log("Item removed from cart");
+				} catch (err: any) {
+					// Revert optimistic update on failure
+					set({ items: prev });
+					console.error("Failed to remove from cart:", err);
+					set({ error: err?.message || "Failed to remove from cart" });
+				}
+			},
 
 			clear: () => {
 				set({ items: [] });

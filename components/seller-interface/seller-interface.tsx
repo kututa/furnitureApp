@@ -5,7 +5,7 @@ import { useReviewStore } from "@/stores/reviewStore";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
 import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import SellerOrders from "../seller-orders/seller-orders";  
+import SellerOrders from "../seller-orders/seller-orders";
 import SellerManageListing from "../sellerManageListing/SellerManageListing";
 import SellerProducts from "../sellerproducts/upload";
 import SellerProfile from "../sellerprofile/SellerProfile";
@@ -93,9 +93,7 @@ const SellerInterface: React.FC<SellerInterfaceProps> = ({ onBack }) => {
 		<View style={styles.container}>
 			{/* Header */}
 			<View style={styles.headerRow}>
-				<TouchableOpacity onPress={onBack} style={{ padding: 4 }}>
-					<Ionicons name="arrow-back" size={24} color="#222" />
-				</TouchableOpacity>
+				<View style={{ width: 24 }} />
 				<Text style={styles.header}>Seller Dashboard</Text>
 				<View style={{ width: 24 }} />
 			</View>
@@ -118,9 +116,8 @@ const SellerInterface: React.FC<SellerInterfaceProps> = ({ onBack }) => {
 				</View>
 				<View style={styles.statBox}>
 					<Text style={styles.statLabel}>Pending Orders</Text>
-					<Text style={styles.statValue}>{pendingOrders}</Text>{" "}
-				 
-				</View>
+								<Text style={styles.statValue}>{pendingOrders}</Text>
+		</View>
 			</View>
 			<View style={styles.statBoxFull}>
 				<Text style={styles.statLabel}>Recent Reviews</Text>

@@ -1,6 +1,7 @@
 
 
 import { useAuthStore } from '@/stores/authStore';
+import { Ionicons } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
@@ -13,6 +14,7 @@ const Login: React.FC<LoginProps> = ({ onShowRegister, onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<'buyer' | 'seller'>('buyer');
+  const [showPassword, setShowPassword] = useState(false);
   const {login, isLoading, error, user} = useAuthStore()
 
   const handleSubmit = async () =>{
@@ -45,14 +47,26 @@ const Login: React.FC<LoginProps> = ({ onShowRegister, onLogin }) => {
 				/>
 
 				<Text style={styles.label}>Password</Text>
-				<TextInput
-					style={styles.input}
-					placeholder="Enter password"
-					placeholderTextColor="#7CB798"
-					value={password}
-					onChangeText={setPassword}
-					secureTextEntry
-				/>
+				<View style={styles.passwordContainer}>
+					<TextInput
+						style={styles.passwordInput}
+						placeholder="Enter password"
+						placeholderTextColor="#7CB798"
+						value={password}
+						onChangeText={setPassword}
+						secureTextEntry={!showPassword}
+					/>
+					<TouchableOpacity
+						style={styles.eyeIcon}
+						onPress={() => setShowPassword(!showPassword)}
+					>
+						<Ionicons
+							name={showPassword ? "eye-off" : "eye"}
+							size={22}
+							color="#7CB798"
+						/>
+					</TouchableOpacity>
+				</View>
 
 				<TouchableOpacity>
 					<Text style={styles.forgot}>Forgot Password?</Text>
@@ -156,6 +170,25 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#222',
     marginBottom: 10,
+  },
+  passwordContainer: {
+    position: 'relative',
+    marginBottom: 10,
+  },
+  passwordInput: {
+    backgroundColor: '#E7F3EC',
+    borderRadius: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingRight: 50,
+    fontSize: 15,
+    color: '#222',
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 12,
+    top: 12,
+    padding: 4,
   },
   forgot: {
     color: '#7CB798',

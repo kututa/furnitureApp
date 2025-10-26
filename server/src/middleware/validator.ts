@@ -118,6 +118,7 @@ export const schemas = {
 		image: Joi.string().optional(),
 		images: Joi.array().optional(),
 		description: Joi.string().min(5).max(100).optional(),
+		stock: Joi.number().min(0).optional(),
 		price: Joi.number().optional(),
 	}),
 	makeOrder: Joi.object({

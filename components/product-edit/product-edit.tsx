@@ -2,7 +2,7 @@ import { useProductStore } from "@/stores/productStore";
 import { Product } from "@/types";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
     ActivityIndicator,
     Alert,
@@ -53,6 +53,16 @@ const ProductEdit: React.FC<ProductEditProps> = ({
     // Validation state
     const [errors, setErrors] = useState<Record<string, string>>({});
 
+    // Auto-fill form when product changes
+    useEffect(() => {
+        setName(product.name || "");
+        setDescription(product.description || "");
+        setPrice(product.price?.toString() || "");
+        setStock(product.stock?.toString() || "");
+        setCategory(product.category || "");
+        setSelectedImage(null); // Reset selected image when product changes
+    }, [product]);
+
     const validateForm = () => {
         const newErrors: Record<string, string> = {};
 
@@ -100,23 +110,30 @@ const ProductEdit: React.FC<ProductEditProps> = ({
             return;
         }
 
-        try {
-            const updatedProductData: Product = {
-                ...product,
-                name: name.trim(),
-                description: description.trim(),
-                price: Number(price),
-                stock: Number(stock),
-                category,
-            };
+        // Only send fields that are allowed by backend validator
+        const updatePayload = {
+            name: name.trim(),
+            description: description.trim(),
+            price: Number(price),
+            stock: Number(stock),
+            category,
+            image: selectedImage || product.image, // Include current image if no new one selected
+        };
 
+        // Create full product data for local state/callback
+        const updatedProductData: Product = {
+            ...product,
+            ...updatePayload,
+        };
+
+        try {
             if (selectedImage) {
                 // Create FormData for multipart upload with new image
                 const formData = new FormData();
                 formData.append("name", name.trim());
                 formData.append("description", description.trim());
-                formData.append("price", price);
-                formData.append("stock", stock);
+                formData.append("price", String(price));
+                formData.append("stock", String(stock));
                 formData.append("category", category);
 
                 // Add image file
@@ -132,17 +149,26 @@ const ProductEdit: React.FC<ProductEditProps> = ({
 
                 await updateProductWithImage(product.id, formData);
             } else {
-                // Update without changing image
-                await update_product(product.id, updatedProductData);
+                // Update without changing image - include current image URL
+                await update_product(product.id, updatePayload as any);
             }
 
-            onSave?.(updatedProductData);
             Alert.alert("Success", "Product updated successfully!", [
                 { text: "OK", onPress: onClose },
             ]);
+            onSave?.(updatedProductData);
         } catch (error: any) {
             console.error("Failed to update product:", error);
-            Alert.alert("Error", error?.message || "Failed to update product. Please try again.");
+            // Check if it's actually a success despite the error
+            if (error?.response?.data?.product || error?.response?.data?._id) {
+                Alert.alert("Success", "Product updated successfully!", [
+                    { text: "OK", onPress: onClose },
+                ]);
+                onSave?.(updatedProductData);
+            } else {
+                const errorMessage = error?.response?.data?.message || error?.message || "Failed to update product. Please try again.";
+                Alert.alert("Error", errorMessage);
+            }
         }
     };
 

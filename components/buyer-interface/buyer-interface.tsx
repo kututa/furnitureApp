@@ -29,7 +29,7 @@ import ReviewInterface from "../review-interface/review-interface";
 
 const BuyerInterface = () => {
 	const { products, fetchProducts, isLoading } = useProductStore();
-	const { items: cartItems, addItem, subtotal: getSubtotal } = useCartStore();
+	const { items: cartItems, addItem, removeItem, subtotal: getSubtotal } = useCartStore();
 	const { currentOrder } = useOrderStore();
 	const insets = useSafeAreaInsets();
 	const [search, setSearch] = useState("");
@@ -152,6 +152,15 @@ const BuyerInterface = () => {
 		console.log("Order completed, showing receipt");
 	};
 
+	const handleRemoveFromCheckout = async (productId: string) => {
+		try {
+			await removeItem(productId);
+			console.log("Item removed from checkout");
+		} catch (error) {
+			console.error("Failed to remove item:", error);
+		}
+	};
+
 	if (showProfile) {
 		return <Profile onBack={() => setShowProfile(false)} />;
 	}
@@ -183,7 +192,7 @@ const BuyerInterface = () => {
 				shipping={SHIPPING_COST}
 				total={total}
 				onBack={() => setShowCheckout(false)}
-				onRemoveItem={() => {}}
+				onRemoveItem={handleRemoveFromCheckout}
 				onConfirmPayment={handleConfirmPayment}
 			/>
 		);

@@ -190,6 +190,19 @@ export const updateCart = async (productId: string, quantity: number) => {
 	}
 };
 
+export const removeFromCart = async (productId: string) => {
+	try {
+		const response = await api.delete(`/cart/${productId}`);
+		return response.data;
+	} catch (err) {
+		console.error("Failed to remove from cart:", err);
+		if (axios.isAxiosError(err)) {
+			throw new Error(err.response?.data?.message || "Failed to remove from cart");
+		}
+		throw err;
+	}
+};
+
 export const getCart = async () => {
 	try {
 		const response = await api.get("/cart/");

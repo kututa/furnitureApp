@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
 
-import { logger } from "../utils/logger";
-import Product from "../models/product.models";
-import Listing from "../models/listings.models";
 import cloudinary from "../config/cloudinary";
+import Listing from "../models/listings.models";
+import Product from "../models/product.models";
+import { logger } from "../utils/logger";
 
 export const addProduct = async (req: Request, res: Response) => {
 	const seller = req.user?.id;
@@ -106,7 +106,7 @@ export const addProduct = async (req: Request, res: Response) => {
 export const updateProduct = async (req: Request, res: Response) => {
 	const seller = req.user?.id;
 	const productId = req.params.id;
-	const { name, category, description, price, stock } = req.body;
+	const { name, category, description, price, stock, image } = req.body;
 
 	if (!seller) {
 		res
@@ -145,20 +145,20 @@ export const updateProduct = async (req: Request, res: Response) => {
 				error: error instanceof Error ? error.message : "Unknown error",
 			});
 		}
-	} else {
-		return res.status(400).json({
-			success: false,
-			message: "image required",
-		});
 	}
-
+	
 	const updateData: any = {};
 	if (name) updateData.name = name;
 	if (description) updateData.description = description;
 	if (price) updateData.price = price;
 	if (category) updateData.category = category;
 	if (stock !== undefined) updateData.stock = stock;
-	if (imageUrl) updateData.image = imageUrl;
+	// Use uploaded image if available, otherwise use image from body (existing URL)
+	if (imageUrl) {
+		updateData.image = imageUrl;
+	} else if (image) {
+		updateData.image = image;
+	}
 
 	try {
 		const isExist = await Product.findByIdAndUpdate(productId, updateData, {
@@ -197,7 +197,6 @@ export const deleteProduct = async (req: Request, res: Response) => {
 			return res
 				.status(404)
 				.json({ success: false, message: "No such product found" });
-			return;
 		}
 
 		res

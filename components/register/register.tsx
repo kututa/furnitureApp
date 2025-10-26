@@ -1,13 +1,14 @@
 import { useAuthStore } from "@/stores/authStore";
+import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
-	Dimensions,
-	Pressable,
-	StyleSheet,
-	Text,
-	TextInput,
-	TouchableOpacity,
-	View,
+  Dimensions,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 type RegisterProps = {
@@ -18,6 +19,7 @@ const Register: React.FC<RegisterProps> = ({ onShowLogin }) => {
 	const [fullName, setFullName] = useState("");
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
+	const [showPassword, setShowPassword] = useState(false);
 	const [role, setRole] = useState<"buyer" | "seller">("buyer");
 	const { register, isLoading, error } = useAuthStore();
 
@@ -63,14 +65,26 @@ const Register: React.FC<RegisterProps> = ({ onShowLogin }) => {
 				autoCapitalize="none"
 			/>
 			{/* Password */}
-			<TextInput
-				style={styles.input}
-				placeholder="Password"
-				placeholderTextColor="#7CB798"
-				value={password}
-				onChangeText={setPassword}
-				secureTextEntry
-			/>
+			<View style={styles.passwordContainer}>
+				<TextInput
+					style={styles.passwordInput}
+					placeholder="Password"
+					placeholderTextColor="#7CB798"
+					value={password}
+					onChangeText={setPassword}
+					secureTextEntry={!showPassword}
+				/>
+				<TouchableOpacity
+					style={styles.eyeIcon}
+					onPress={() => setShowPassword(!showPassword)}
+				>
+					<Ionicons
+						name={showPassword ? "eye-off" : "eye"}
+						size={22}
+						color="#7CB798"
+					/>
+				</TouchableOpacity>
+			</View>
 			{/* Role Toggle */}
 			<View style={styles.roleRow}>
 				<Pressable
@@ -165,6 +179,30 @@ const styles = StyleSheet.create({
 		minWidth: 220,
 		maxWidth: 500,
 		alignSelf: "center",
+	},
+	passwordContainer: {
+		position: "relative",
+		marginBottom: 14,
+		width: "100%",
+		minWidth: 220,
+		maxWidth: 500,
+		alignSelf: "center",
+	},
+	passwordInput: {
+		backgroundColor: "#E7F3EC",
+		borderRadius: 6,
+		paddingHorizontal: 16,
+		paddingVertical: 12,
+		paddingRight: 50,
+		fontSize: 15,
+		color: "#222",
+		width: "100%",
+	},
+	eyeIcon: {
+		position: "absolute",
+		right: 12,
+		top: 12,
+		padding: 4,
 	},
 	roleRow: {
 		flexDirection: "row",

@@ -54,7 +54,7 @@ const Cart: React.FC<CartProps> = ({
 			return;
 		}
 		if (nextQty <= 0) {
-			removeItem(id);
+			removeItem(id).catch((err) => console.error("Failed to remove item:", err));
 		} else {
 			setQuantity(id, nextQty);
 		}

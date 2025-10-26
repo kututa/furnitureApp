@@ -2,16 +2,16 @@ import { Router } from "express";
 
 import {
 	addProduct,
-	updateProduct,
 	deleteProduct,
-	getProducts,
+	getListingsBySeller,
 	getProduct,
-	updateStock,
-	getListingsBySeller
+	getProducts,
+	updateProduct,
+	updateStock
 } from "../controllers/product.controller";
-import { validateWithFile, schemas } from "../middleware/validator";
-import { multerUpload } from "../middleware/multer";
 import { authenticate } from "../middleware/auth";
+import { multerUpload } from "../middleware/multer";
+import { schemas, validateWithFile } from "../middleware/validator";
 
 const router = Router();
 
@@ -33,7 +33,7 @@ router.put(
 	"/:id",
 	authenticate,
 	multerUpload.single("image"),
-	validateWithFile(schemas.updateProduct),
+	validateWithFile(schemas.updateProduct, false),
 	updateProduct
 );
 
