@@ -1,342 +1,426 @@
-import { Feather, Ionicons } from '@expo/vector-icons';
-import React, { useState } from 'react';
-import { Dimensions, FlatList, Image, Modal, Platform, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import Profile from '../buyerprofile/profile';
-import Cart, { CartItem } from '../cart/cart';
-import Checkout from '../checkout/checkout';
-import Receipt from '../receipt/receipt';
-import ReviewInterface from '../review-interface/review-interface';
-
-const products = [
-  {
-    id: '1',
-    name: 'Handcrafted Coffee Table',
-    price: 'Ksh 8,500',
-    image: require('../../assets/images/0.jpg'),
-    category: 'Tables',
-    location: 'Nairobi',
-  },
-  {
-    id: '2',
-    name: 'Modern Dining Set',
-    price: 'Ksh 25,000',
-    image: require('../../assets/images/1.jpg'),
-    category: 'Tables',
-    location: 'Mombasa',
-  },
-  {
-    id: '3',
-    name: 'Rustic Bookshelf',
-    price: 'Ksh 12,000',
-    image: require('../../assets/images/2.jpg'),
-    category: 'Cabinets',
-    location: 'Nairobi',
-  },
-  {
-    id: '4',
-    name: 'Elegant Sofa',
-    price: 'Ksh 35,000',
-    image: require('../../assets/images/3.jpg'),
-    category: 'Sofas',
-    location: 'Mombasa',
-  },
-  {
-    id: '5',
-    name: 'Minimalist Desk',
-    price: 'Ksh 15,000',
-    image: require('../../assets/images/4.jpg'),
-    category: 'Desks',
-    location: 'Nairobi',
-  },
-  {
-    id: '6',
-    name: 'Cozy Armchair',
-    price: 'Ksh 7,000',
-    image: require('../../assets/images/5.jpg'),
-    category: 'Chairs',
-    location: 'Mombasa',
-  },
-];
+import { useCartStore } from "@/stores/cartStore";
+import { useOrderStore } from "@/stores/orderStore";
+import { useProductStore } from "@/stores/productStore";
+import { Feather, Ionicons } from "@expo/vector-icons";
+import React, { useEffect, useState } from "react";
+import {
+	ActivityIndicator,
+	Dimensions,
+	FlatList,
+	Image,
+	Modal,
+	Platform,
+	Pressable,
+	StyleSheet,
+	Text,
+	TextInput,
+	TouchableOpacity,
+	View,
+} from "react-native";
+import {
+	SafeAreaView,
+	useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import Profile from "../buyerprofile/profile";
+import Cart from "../cart/cart";
+import Checkout from "../checkout/checkout";
+import Receipt from "../receipt/receipt";
+import ReviewInterface from "../review-interface/review-interface";
 
 const BuyerInterface = () => {
-  const insets = useSafeAreaInsets();
-  const [search, setSearch] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
-  const [priceFilter, setPriceFilter] = useState<string | null>(null);
-  const [openDropdown, setOpenDropdown] = useState<'category' | 'price' | null>(null);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<any>(null);
-  const [reviewVisible, setReviewVisible] = useState(false);
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [showCart, setShowCart] = useState(false);
-  const [showCheckout, setShowCheckout] = useState(false);
-  const [showReceipt, setShowReceipt] = useState(false);
-  const [lastOrder, setLastOrder] = useState<any>(null);
-  const [showProfile, setShowProfile] = useState(false);
+	const { products, fetchProducts, isLoading } = useProductStore();
+	const { items: cartItems, addItem, subtotal: getSubtotal } = useCartStore();
+	const { currentOrder } = useOrderStore();
+	const insets = useSafeAreaInsets();
+	const [search, setSearch] = useState("");
+	const [categoryFilter, setCategoryFilter] = useState<string | null>(null);
+	const [priceFilter, setPriceFilter] = useState<string | null>(null);
+	const [openDropdown, setOpenDropdown] = useState<"category" | "price" | null>(
+		null
+	);
+	const [modalVisible, setModalVisible] = useState(false);
+	const [selectedImage, setSelectedImage] = useState<any>(null);
+	const [selectedProductId, setSelectedProductId] = useState<string | null>(
+		null
+	);
+	const [reviewVisible, setReviewVisible] = useState(false);
+	const [showCart, setShowCart] = useState(false);
+	const [showCheckout, setShowCheckout] = useState(false);
+	const [showReceipt, setShowReceipt] = useState(false);
+	const [lastOrder, setLastOrder] = useState<any>(null);
+	const [showProfile, setShowProfile] = useState(false);
 
-  const handleImagePress = (img: any) => {
-    setSelectedImage(img);
-    setModalVisible(true);
-  };
+	useEffect(() => {
+		fetchProducts();
+	}, []);
 
-  const renderProduct = ({ item }: any) => {
-    return (
-      <View style={styles.card}>
-        <TouchableOpacity onPress={() => handleImagePress(item.image)}>
-          <Image source={item.image} style={styles.cardImage} resizeMode="cover" />
-        </TouchableOpacity>
-        <Text style={styles.cardTitle}>{item.name}</Text>
-        <View style={styles.cardRow}>
-          <Text style={styles.cardPrice}>{item.price}</Text>
-          <TouchableOpacity onPress={() => {
-            setCart(prev => {
-              const existing = prev.find(ci => ci.id === item.id);
-              if (existing) {
-                return prev.map(ci => ci.id === item.id ? { ...ci, quantity: ci.quantity + 1 } : ci);
-              } else {
-                return [...prev, { ...item, quantity: 1 }];
-              }
-            });
-          }}>
-            <Text style={styles.addToCart}>Add to Cart</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    );
-  };
+	const handleImagePress = (imageUrl: string, productId: string) => {
+		setSelectedImage(imageUrl);
+		setSelectedProductId(productId);
+		setModalVisible(true);
+	};
 
-  // Cart quantity update handler
-  const handleUpdateQuantity = (id: string, quantity: number) => {
-    setCart(prev => prev.map(item => item.id === id ? { ...item, quantity: Math.max(1, quantity) } : item));
-  };
+	const handleAddToCart = async (product: any) => {
+		try {
+			await addItem(product, 1);
+			console.log("Product added to cart");
+		} catch (error) {
+			console.error("Failed to add product to cart:", error);
+		}
+	};
 
+	const renderProduct = ({ item }: any) => {
+		return (
+			<View style={styles.card}>
+				<TouchableOpacity onPress={() => handleImagePress(item.image, item.id)}>
+					{item.image ? (
+						<Image
+							source={{ uri: item.image }}
+							style={styles.cardImage}
+							resizeMode="cover"
+						/>
+					) : (
+						<View
+							style={[
+								styles.cardImage,
+								{
+									backgroundColor: "#E7F3EC",
+									justifyContent: "center",
+									alignItems: "center",
+								},
+							]}
+						>
+							<Ionicons name="image-outline" size={48} color="#7CB798" />
+						</View>
+					)}
+				</TouchableOpacity>
+				<Text style={styles.cardTitle} numberOfLines={2}>
+					{item.name}
+				</Text>
+				<View style={styles.cardRow}>
+					<Text style={styles.cardPrice}>
+						Ksh {item.price?.toLocaleString()}
+					</Text>
+					<TouchableOpacity onPress={() => handleAddToCart(item)}>
+						<Text style={styles.addToCart}>Add to Cart</Text>
+					</TouchableOpacity>
+				</View>
+			</View>
+		);
+	};
 
-  // Calculate summary values
-  const SHIPPING_COST = 100;
-  const subtotal = cart.reduce((sum, item) => sum + parseInt(item.price.replace(/[^\d]/g, '')) * item.quantity, 0);
-  const total = subtotal + SHIPPING_COST;
+	// Calculate summary values from store
+	const SHIPPING_COST = 100;
+	const subtotal = getSubtotal();
+	const total = subtotal + SHIPPING_COST;
 
-  // Remove item from cart
-  const handleRemoveItem = (id: string) => {
-    setCart(prev => prev.filter(item => item.id !== id));
-  };
+	// Map cartItems to UI format for Checkout/Receipt
+	const uiCartItems = cartItems.map((it) => ({
+		id: it.product.id,
+		name: it.product.name,
+		price: `Ksh ${it.product.price}`,
+		image: it.product.image,
+		quantity: it.quantity,
+	}));
 
-  // Handle payment confirmation
+	const handleConfirmPayment = (orderDetails: any) => {
+		const order = orderDetails.order;
+		const shippingDetails = orderDetails.shippingDetails;
 
-  const handleConfirmPayment = (form: any) => {
-    // Generate order number and delivery date
-    const orderNumber = Math.floor(10000000 + Math.random() * 90000000).toString();
-    const deliveryDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString('en-KE', { year: 'numeric', month: 'long', day: 'numeric' });
-    setLastOrder({
-      items: cart,
-      subtotal,
-      shipping: SHIPPING_COST,
-      total,
-      orderNumber,
-      deliveryDate,
-      paymentMethod: 'M-pesa',
-    });
-    setShowCheckout(false);
-    setShowReceipt(true);
-    setCart([]);
-  };
+	
+		setLastOrder({
+			items: uiCartItems,
+			subtotal: order.subTotal || subtotal,
+			shipping: order.shipping || SHIPPING_COST,
+			total: order.total || total,
+			orderNumber: order.orderNumber || `#${order.id || order._id}`, 
+			deliveryDate: new Date(
+				Date.now() + 7 * 24 * 60 * 60 * 1000
+			).toLocaleDateString("en-KE", {
+				year: "numeric",
+				month: "long",
+				day: "numeric",
+			}),
+			paymentMethod: "M-pesa",
+			paymentStatus: order.paymentStatus,
+			shippingDetails,
+			mpesaCheckoutRequestID: order.mpesaCheckoutRequestID, 
+		});
 
+		setShowCheckout(false);
+		setShowReceipt(true);
+		console.log("Order completed, showing receipt");
+	};
 
-  if (showProfile) {
-    return <Profile onBack={() => setShowProfile(false)} />;
-  }
+	if (showProfile) {
+		return <Profile onBack={() => setShowProfile(false)} />;
+	}
 
-  if (showReceipt && lastOrder) {
-    return (
-      <Receipt
-        items={lastOrder.items}
-        subtotal={lastOrder.subtotal}
-        shipping={lastOrder.shipping}
-        total={lastOrder.total}
-        orderNumber={lastOrder.orderNumber}
-        deliveryDate={lastOrder.deliveryDate}
-        paymentMethod={lastOrder.paymentMethod}
-        onBackHome={() => {
-          setShowReceipt(false);
-          setLastOrder(null);
-          setShowCart(false);
-          setCart([]);
-        }}
-      />
-    );
-  }
+	if (showReceipt && lastOrder) {
+		return (
+			<Receipt
+				items={lastOrder.items}
+				subtotal={lastOrder.subtotal}
+				shipping={lastOrder.shipping}
+				total={lastOrder.total}
+				orderNumber={lastOrder.orderNumber}
+				deliveryDate={lastOrder.deliveryDate}
+				paymentMethod={lastOrder.paymentMethod}
+				onBackHome={() => {
+					setShowReceipt(false);
+					setLastOrder(null);
+					setShowCart(false);
+				}}
+			/>
+		);
+	}
 
-  if (showCheckout) {
-    return (
-      <Checkout
-        items={cart}
-        subtotal={subtotal}
-        shipping={SHIPPING_COST}
-        total={total}
-        onBack={() => setShowCheckout(false)}
-        onRemoveItem={handleRemoveItem}
-        onConfirmPayment={handleConfirmPayment}
-      />
-    );
-  }
+	if (showCheckout) {
+		return (
+			<Checkout
+				items={uiCartItems}
+				subtotal={subtotal}
+				shipping={SHIPPING_COST}
+				total={total}
+				onBack={() => setShowCheckout(false)}
+				onRemoveItem={() => {}}
+				onConfirmPayment={handleConfirmPayment}
+			/>
+		);
+	}
 
-  if (showCart) {
-    return (
-      <Cart
-        items={cart}
-        onBack={() => setShowCart(false)}
-        onUpdateQuantity={handleUpdateQuantity}
-        onCheckout={() => setShowCheckout(true)}
-      />
-    );
-  }
+	if (showCart) {
+		return (
+			<Cart
+				onBack={() => setShowCart(false)}
+				onCheckout={() => setShowCheckout(true)}
+			/>
+		);
+	}
 
+	// Filtering logic
+	let filteredProducts = products.filter((p) => {
+		let priceValue = p.price || 0;
+		let priceMatch = true;
+		if (priceFilter === "1000 to 10000")
+			priceMatch = priceValue >= 1000 && priceValue <= 10000;
+		else if (priceFilter === "10000+") priceMatch = priceValue > 10000;
 
+		const categoryMatch =
+			!categoryFilter ||
+			p.category?.toLowerCase() === categoryFilter.toLowerCase();
+		const searchMatch =
+			!search || p.name?.toLowerCase().includes(search.toLowerCase());
 
-  // Filtering logic
-  let filteredProducts = products.filter(p => {
-    let priceValue = parseInt(p.price.replace(/[^\d]/g, ''));
-    let priceMatch = true;
-    if (priceFilter === '1000 to 10000') priceMatch = priceValue >= 1000 && priceValue <= 10000;
-    else if (priceFilter === '10000+') priceMatch = priceValue > 10000;
-    return (
-      (!categoryFilter || p.category === categoryFilter) &&
-      priceMatch &&
-      (!search || p.name.toLowerCase().includes(search.toLowerCase()))
-    );
-  });
+		return categoryMatch && priceMatch && searchMatch;
+	});
 
-  // Dropdown overlay rendering
-  const renderDropdownOverlay = () => {
-    if (!openDropdown) return null;
-    let options: string[] = [];
-    let onSelect: (option: string) => void = () => {};
-    let selected = '';
-    if (openDropdown === 'category') {
-      options = ['All', 'Tables', 'Chairs', 'Desks', 'Sofas', 'Cabinets'];
-      onSelect = (option) => {
-        if (option === 'All') setCategoryFilter(null);
-        else setCategoryFilter(option);
-        setOpenDropdown(null);
-      };
-      selected = categoryFilter || 'All';
-    } else if (openDropdown === 'price') {
-      options = ['1000 to 10000', '10000+'];
-      onSelect = (option) => { setPriceFilter(option); setOpenDropdown(null); };
-      selected = priceFilter || '';
-    }
-    return (
-      <Pressable style={styles.dropdownOverlay} onPress={() => setOpenDropdown(null)}>
-        <View style={styles.dropdownMenuOverlay}>
-          {options.map(option => (
-            <TouchableOpacity
-              key={option}
-              style={[styles.dropdownItem, selected === option && { backgroundColor: '#E7F3EC' }]}
-              onPress={() => onSelect(option)}
-            >
-              <Text style={styles.dropdownText}>{option}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </Pressable>
-    );
-  };
+	const renderDropdownOverlay = () => {
+		if (!openDropdown) return null;
+		let options: string[] = [];
+		let onSelect: (option: string) => void = () => {};
+		let selected = "";
+		if (openDropdown === "category") {
+			options = ["All", "tables", "chairs", "desks", "sofas", "cabinets"];
+			onSelect = (option) => {
+				if (option === "All") setCategoryFilter(null);
+				else setCategoryFilter(option);
+				setOpenDropdown(null);
+			};
+			selected = categoryFilter || "All";
+		} else if (openDropdown === "price") {
+			options = ["1000 to 10000", "10000+"];
+			onSelect = (option) => {
+				setPriceFilter(option);
+				setOpenDropdown(null);
+			};
+			selected = priceFilter || "";
+		}
+		return (
+			<Pressable
+				style={styles.dropdownOverlay}
+				onPress={() => setOpenDropdown(null)}
+			>
+				<View style={styles.dropdownMenuOverlay}>
+					{options.map((option) => (
+						<TouchableOpacity
+							key={option}
+							style={[
+								styles.dropdownItem,
+								selected === option && { backgroundColor: "#E7F3EC" },
+							]}
+							onPress={() => onSelect(option)}
+						>
+							<Text style={styles.dropdownText}>{option}</Text>
+						</TouchableOpacity>
+					))}
+				</View>
+			</Pressable>
+		);
+	};
 
-  return (
-    <View style={styles.container}>
-      {/* Dropdown Overlay */}
-      {renderDropdownOverlay()}
+	if (isLoading && products.length === 0) {
+		return (
+			<View
+				style={[
+					styles.container,
+					{ justifyContent: "center", alignItems: "center" },
+				]}
+			>
+				<ActivityIndicator size="large" color="#38E472" />
+				<Text style={{ color: "#7CB798", marginTop: 12 }}>
+					Loading products...
+				</Text>
+			</View>
+		);
+	}
 
-      {/* Search */}
-      <View style={styles.searchBox}>
-        <Ionicons name="search" size={18} color="#7CB798" style={{ marginRight: 8 }} />
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search for furniture"
-          placeholderTextColor="#7CB798"
-          value={search}
-          onChangeText={setSearch}
-        />
-      </View>
+	return (
+		<View style={styles.container}>
+			{/* Dropdown Overlay */}
+			{renderDropdownOverlay()}
 
-      {/* Filters */}
-      <View style={styles.filterRow}>
-        <View style={{ flex: 1, zIndex: 2 }}>
-          <TouchableOpacity style={styles.filterBtn} onPress={() => setOpenDropdown(openDropdown === 'category' ? null : 'category')}>
-            <Text style={styles.filterBtnText}>{categoryFilter || 'Category'}</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={{ flex: 1, zIndex: 2 }}>
-          <TouchableOpacity style={styles.filterBtn} onPress={() => setOpenDropdown(openDropdown === 'price' ? null : 'price')}>
-            <Text style={styles.filterBtnText}>{priceFilter || 'Price'}</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
+			{/* Search */}
+			<View style={styles.searchBox}>
+				<Ionicons
+					name="search"
+					size={18}
+					color="#7CB798"
+					style={{ marginRight: 8 }}
+				/>
+				<TextInput
+					style={styles.searchInput}
+					placeholder="Search for furniture"
+					placeholderTextColor="#7CB798"
+					value={search}
+					onChangeText={setSearch}
+				/>
+			</View>
 
-      {/* Product Grid */}
-      <FlatList
-        data={filteredProducts}
-        renderItem={renderProduct}
-        keyExtractor={item => item.id}
-        numColumns={2}
-        columnWrapperStyle={{ justifyContent: 'space-between' }}
-  // Ensure last product card is fully visible above the bottom navigation bar
-  contentContainerStyle={{ paddingBottom: (styles.bottomNav.height || 56) + insets.bottom + 24 }}
-  scrollIndicatorInsets={{ bottom: (styles.bottomNav.height || 56) + insets.bottom + 24 }}
-        showsVerticalScrollIndicator={false}
-      />
+			{/* Filters */}
+			<View style={styles.filterRow}>
+				<View style={{ flex: 1, zIndex: 2 }}>
+					<TouchableOpacity
+						style={styles.filterBtn}
+						onPress={() =>
+							setOpenDropdown(openDropdown === "category" ? null : "category")
+						}
+					>
+						<Text style={styles.filterBtnText}>
+							{categoryFilter || "Category"}
+						</Text>
+					</TouchableOpacity>
+				</View>
+				<View style={{ flex: 1, zIndex: 2 }}>
+					<TouchableOpacity
+						style={styles.filterBtn}
+						onPress={() =>
+							setOpenDropdown(openDropdown === "price" ? null : "price")
+						}
+					>
+						<Text style={styles.filterBtnText}>{priceFilter || "Price"}</Text>
+					</TouchableOpacity>
+				</View>
+			</View>
 
-      {/* Image Modal */}
-      <Modal
-        visible={modalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Pressable style={styles.closeBtn} onPress={() => setModalVisible(false)}>
-              <Text style={styles.closeBtnText}>×</Text>
-            </Pressable>
-            {selectedImage && (
-              <Image source={selectedImage} style={styles.fullImage} resizeMode="contain" />
-            )}
-            {/* Rate Product Button */}
-            <TouchableOpacity style={styles.rateBtn} onPress={() => setReviewVisible(true)}>
-              <Text style={styles.rateBtnText}>Rate Product</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+			{/* Product Grid */}
+			{filteredProducts.length === 0 ? (
+				<View
+					style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+				>
+					<Ionicons name="cart-outline" size={64} color="#E7F3EC" />
+					<Text style={{ color: "#7CB798", marginTop: 16, fontSize: 16 }}>
+						No products found
+					</Text>
+				</View>
+			) : (
+				<FlatList
+					data={filteredProducts}
+					renderItem={renderProduct}
+					keyExtractor={(item) => item.id}
+					numColumns={2}
+					columnWrapperStyle={{ justifyContent: "space-between" }}
+					contentContainerStyle={{
+						paddingBottom: (styles.bottomNav.height || 56) + insets.bottom + 24,
+					}}
+					scrollIndicatorInsets={{
+						bottom: (styles.bottomNav.height || 56) + insets.bottom + 24,
+					}}
+					showsVerticalScrollIndicator={false}
+				/>
+			)}
 
-      {/* Review Modal */}
-      <ReviewInterface visible={reviewVisible} onClose={() => setReviewVisible(false)} />
+			{/* Image Modal */}
+			<Modal
+				visible={modalVisible}
+				transparent
+				animationType="fade"
+				onRequestClose={() => setModalVisible(false)}
+			>
+				<View style={styles.modalOverlay}>
+					<View style={styles.modalContent}>
+						<Pressable
+							style={styles.closeBtn}
+							onPress={() => setModalVisible(false)}
+						>
+							<Text style={styles.closeBtnText}>×</Text>
+						</Pressable>
+						{selectedImage && (
+							<Image
+								source={{ uri: selectedImage }}
+								style={styles.fullImage}
+								resizeMode="contain"
+							/>
+						)}
+						{/* Rate Product Button */}
+						<TouchableOpacity
+							style={styles.rateBtn}
+							onPress={() => {
+								setReviewVisible(true);
+								setModalVisible(false);
+							}}
+						>
+							<Text style={styles.rateBtnText}>Rate Product</Text>
+						</TouchableOpacity>
+					</View>
+				</View>
+			</Modal>
 
-      {/* Bottom Navigation - wrapped in SafeAreaView for adaptive spacing */}
-      <SafeAreaView edges={["bottom"]} style={styles.bottomNavSafeArea}>
-        <View style={styles.bottomNav}>
-          <Ionicons name="home-outline" size={24} color="#7CB798" />
-          {/* <Ionicons name="search-outline" size={24} color="#7CB798" /> */}
-          <TouchableOpacity onPress={() => setShowCart(true)} style={{ position: 'relative' }}>
-            <Feather name="shopping-cart" size={24} color="#7CB798" />
-            {cart.length > 0 && (
-              <View style={styles.cartBadge}>
-                <Text style={styles.cartBadgeText}>{cart.reduce((sum, item) => sum + item.quantity, 0)}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => setShowProfile(true)}>
-            <Ionicons name="person-outline" size={24} color="#7CB798" />
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    </View>
-  );
+			{/* Review Modal */}
+			<ReviewInterface
+				visible={reviewVisible}
+				onClose={() => setReviewVisible(false)}
+				productId={selectedProductId || ""}
+			/>
+
+			{/* Bottom Navigation - wrapped in SafeAreaView for adaptive spacing */}
+			<SafeAreaView edges={["bottom"]} style={styles.bottomNavSafeArea}>
+				<View style={styles.bottomNav}>
+					<Ionicons name="home-outline" size={24} color="#7CB798" />
+					<TouchableOpacity
+						onPress={() => setShowCart(true)}
+						style={{ position: "relative" }}
+					>
+						<Feather name="shopping-cart" size={24} color="#7CB798" />
+						{cartItems.length > 0 && (
+							<View style={styles.cartBadge}>
+								<Text style={styles.cartBadgeText}>
+									{cartItems.reduce((sum, item) => sum + item.quantity, 0)}
+								</Text>
+							</View>
+						)}
+					</TouchableOpacity>
+					<TouchableOpacity onPress={() => setShowProfile(true)}>
+						<Ionicons name="person-outline" size={24} color="#7CB798" />
+					</TouchableOpacity>
+				</View>
+			</SafeAreaView>
+		</View>
+	);
 };
 
-const cardWidth = (Dimensions.get('window').width - 24 * 2 - 16) / 2;
-const cardImageHeight = 190; // Slightly increased for better visual impact
+const cardWidth = (Dimensions.get("window").width - 24 * 2 - 16) / 2;
+const cardImageHeight = 190;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
