@@ -1,0 +1,57 @@
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+  margin-top: 24px;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.users-table th,
+.users-table td {
+  padding: 14px 18px;
+  text-align: left;
+}
+.users-table th {
+  background: #22223b;
+  color: #fff;
+  font-weight: 600;
+}
+.users-table tr:nth-child(even) {
+  background: #f2e9e4;
+}
+.users-table tr:hover {
+  background: #c9ada7;
+  color: #22223b;
+}
+.approve-btn {
+  background: #4caf50;
+  color: #fff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 4px;
+  margin-right: 6px;
+  cursor: pointer;
+}
+.suspend-btn {
+  background: #fca311;
+  color: #fff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 4px;
+  margin-right: 6px;
+  cursor: pointer;
+}
+.delete-btn {
+  background: #e63946;
+  color: #fff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.approve-btn:hover,
+.suspend-btn:hover,
+.delete-btn:hover {
+  opacity: 0.85;
+}
