@@ -6,6 +6,7 @@ dotenv.config();
 import { connectDB } from "./config/db";
 import { httpLogger, logger } from "./utils/logger";
 
+import adminRoutes from "./routes/admin.routes";
 import authRoutes from "./routes/auth.routes";
 import cartRoutes from "./routes/cart.routes";
 import mpesaRoutes from "./routes/mpesa.routes";
@@ -33,6 +34,7 @@ app.use(`${apiVersion}/order`, orderRoutes);
 app.use(`${apiVersion}/review`, reviewRoutes);
 app.use(`${apiVersion}/mpesa`, mpesaRoutes);
 app.use(`${apiVersion}/users`, userRoutes);
+app.use(`${apiVersion}/admin`, adminRoutes);
 
 const PORT = process.env.PORT || 3000;
 

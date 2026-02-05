@@ -1,7 +1,7 @@
 import { Router } from "express";
-import { initiatePayment, makeOrder, getBuyersOrders, getSellersOrders, updateStatus, cancelOrder } from "../controllers/order.controller";
-import { validate, schemas } from "../middleware/validator";
+import { cancelOrder, getBuyersOrders, getSellersOrders, initiatePayment, makeOrder, updateStatus } from "../controllers/order.controller";
 import { authenticate } from "../middleware/auth";
+import { schemas, validate } from "../middleware/validator";
 
 const router = Router();
 
@@ -14,7 +14,7 @@ router.post("/initiate-payment", authenticate, validate(schemas.makeOrder), init
 // keep but disabled (returns 405)
 router.post("/", authenticate, validate(schemas.makeOrder), makeOrder);
 
-router.put("/:id", updateStatus);
+router.put("/:id", authenticate, updateStatus);
 router.put("/cancel/:id", authenticate, cancelOrder);
 
 export default router;

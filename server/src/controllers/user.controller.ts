@@ -32,7 +32,9 @@ export const toggleSuspendUser = async (req: Request, res: Response) => {
     if (!user) return res.status(404).json({ message: "User not found" });
     user.isSuspended = !user.isSuspended;
     await user.save();
-    res.json(user);
+    const userWithoutPassword = user.toObject();
+    const { password, ...safeUser } = userWithoutPassword;
+    res.json(safeUser);
   } catch (err) {
     logger.error("Failed to toggle suspend user", err);
     res.status(500).json({ message: "Server error" });

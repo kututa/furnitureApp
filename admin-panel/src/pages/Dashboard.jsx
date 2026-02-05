@@ -1,47 +1,34 @@
-import { useEffect, useState } from "react";
-import { approveUser, deleteUser, fetchUsers, suspendUser } from "../api/users";
+import { useEffect } from "react";
 import UsersTable from "../components/UsersTable";
+import { useAdminStore } from "../store";
 
 const Dashboard = () => {
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(false);
-
-  const loadUsers = async () => {
-    setLoading(true);
-    try {
-      const { data } = await fetchUsers();
-      setUsers(data);
-    } catch (err) {
-      alert("Failed to fetch users");
-    }
-    setLoading(false);
-  };
+  const { users, isLoading, error, loadUsers, approve, suspend, remove } =
+    useAdminStore();
 
   useEffect(() => {
     loadUsers();
-  }, []);
+  }, [loadUsers]);
 
   const handleApprove = async (id) => {
-    await approveUser(id);
-    loadUsers();
+    await approve(id);
   };
 
   const handleSuspend = async (id) => {
-    await suspendUser(id);
-    loadUsers();
+    await suspend(id);
   };
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
-      await deleteUser(id);
-      loadUsers();
+      await remove(id);
     }
   };
 
   return (
     <div style={{ padding: 32 }}>
       <h1>Admin Dashboard</h1>
-      {loading ? (
+      {error && <p>{error}</p>}
+      {isLoading ? (
         <p>Loading...</p>
       ) : (
         <UsersTable

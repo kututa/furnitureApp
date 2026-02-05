@@ -1,40 +1,10 @@
 import "./UsersTable.css";
 
-const dummyUsers = [
-  {
-    _id: "1",
-    email: "buyer1@example.com",
-    role: "buyer",
-    isApproved: true,
-    isSuspended: false,
-  },
-  {
-    _id: "2",
-    email: "seller1@example.com",
-    role: "seller",
-    isApproved: false,
-    isSuspended: false,
-  },
-  {
-    _id: "3",
-    email: "buyer2@example.com",
-    role: "buyer",
-    isApproved: true,
-    isSuspended: true,
-  },
-  {
-    _id: "4",
-    email: "seller2@example.com",
-    role: "seller",
-    isApproved: false,
-    isSuspended: false,
-  },
-];
-
-const UsersTable = ({ users = dummyUsers, onApprove, onSuspend, onDelete }) => (
+const UsersTable = ({ users = [], onApprove, onSuspend, onDelete }) => (
   <table className="users-table">
     <thead>
       <tr>
+        <th>Name</th>
         <th>Email</th>
         <th>Role</th>
         <th>Approved</th>
@@ -43,36 +13,45 @@ const UsersTable = ({ users = dummyUsers, onApprove, onSuspend, onDelete }) => (
       </tr>
     </thead>
     <tbody>
-      {(users.length ? users : dummyUsers).map((user) => (
-        <tr key={user._id}>
-          <td>{user.email}</td>
-          <td>{user.role}</td>
-          <td>{user.isApproved ? "Yes" : "No"}</td>
-          <td>{user.isSuspended ? "Yes" : "No"}</td>
-          <td>
-            {!user.isApproved && (
-              <button
-                className="approve-btn"
-                onClick={() => onApprove && onApprove(user._id)}
-              >
-                Approve
-              </button>
-            )}
-            <button
-              className="suspend-btn"
-              onClick={() => onSuspend && onSuspend(user._id)}
-            >
-              {user.isSuspended ? "Reactivate" : "Suspend"}
-            </button>
-            <button
-              className="delete-btn"
-              onClick={() => onDelete && onDelete(user._id)}
-            >
-              Delete
-            </button>
+      {users.length === 0 ? (
+        <tr>
+          <td colSpan={6} style={{ textAlign: "center", padding: "16px" }}>
+            No users found.
           </td>
         </tr>
-      ))}
+      ) : (
+        users.map((user) => (
+          <tr key={user._id}>
+            <td>{user.fullName || "N/A"}</td>
+            <td>{user.email}</td>
+            <td>{user.role}</td>
+            <td>{user.isApproved ? "Yes" : "No"}</td>
+            <td>{user.isSuspended ? "Yes" : "No"}</td>
+            <td>
+              {!user.isApproved && (
+                <button
+                  className="approve-btn"
+                  onClick={() => onApprove && onApprove(user._id)}
+                >
+                  Approve
+                </button>
+              )}
+              <button
+                className="suspend-btn"
+                onClick={() => onSuspend && onSuspend(user._id)}
+              >
+                {user.isSuspended ? "Reactivate" : "Suspend"}
+              </button>
+              <button
+                className="delete-btn"
+                onClick={() => onDelete && onDelete(user._id)}
+              >
+                Delete
+              </button>
+            </td>
+          </tr>
+        ))
+      )}
     </tbody>
   </table>
 );

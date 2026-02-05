@@ -102,12 +102,22 @@ export const callBack = async (req: Request, res: Response) => {
 			return `${prefix}-${timestamp.slice(-8)}-${random}`;
 		};
 
-		// Reduce stock atomically
+		// Reduce stock atomically with validation to prevent negative stock
 		for (const item of meta.items || []) {
-			await Product.updateOne(
-				{ _id: item.product },
+			const updateResult = await Product.updateOne(
+				{ _id: item.product, stock: { $gte: item.quantity } },
 				{ $inc: { stock: -item.quantity } }
 			);
+			if (updateResult.modifiedCount === 0) {
+				logger.error(`Insufficient stock for product ${item.product}`);
+				// Mark transaction as failed even though payment succeeded
+				tx.status = "failed";
+				tx.resultDesc = "Insufficient stock";
+				await tx.save();
+				return res.status(200).json({ 
+					message: "Payment received but order cannot be fulfilled - insufficient stock" 
+				});
+			}
 		}
 
 		// Create actual Order from transaction metadata
@@ -120,9 +130,9 @@ export const callBack = async (req: Request, res: Response) => {
 			total: tx.metadata.total,
 			paymentMethod: "mpesa",
 			paymentStatus: "paid",
-			status: "confirmed", // 
+			status: "pending", // Order created after payment, awaiting shipment
 			shippingInfo: tx.metadata.shippingInfo,
-			orderNumber: generateOrderNumber(), //  
+			orderNumber: generateOrderNumber(),
 			mpesaReceiptNumber: mpesaReceiptNumber,
 			mpesaCheckoutRequestID: checkoutRequestId,
 		});
