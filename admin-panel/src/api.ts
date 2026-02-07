@@ -10,7 +10,20 @@ export const api = axios.create({
   },
 });
 
+// Add request interceptor to log failed requests
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error("API Error:", {
+      status: error.response?.status,
+      data: error.response?.data,
+      url: error.config?.url,
+    });
+    return Promise.reject(error);
+  },
+);
+
 export const fetchUsers = () => api.get("/users");
-export const approveUser = (id) => api.patch(`/users/${id}/approve`);
-export const suspendUser = (id) => api.patch(`/users/${id}/suspend`);
-export const deleteUser = (id) => api.delete(`/users/${id}`);
+export const approveUser = (id: string) => api.patch(`/users/${id}/approve`);
+export const suspendUser = (id: string) => api.patch(`/users/${id}/suspend`);
+export const deleteUser = (id: string) => api.delete(`/users/${id}`);

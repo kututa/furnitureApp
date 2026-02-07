@@ -1,0 +1,149 @@
+.settings-container {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* Page Header */
+.page-header {
+  margin-bottom: 8px;
+}
+
+.page-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  color: #22223b;
+  margin: 0 0 8px 0;
+}
+
+.page-header p {
+  font-size: 16px;
+  color: #7cb798;
+  margin: 0;
+}
+
+/* Settings Content */
+.settings-content {
+  background: white;
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* Settings Section */
+.settings-section {
+  padding-bottom: 32px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.settings-section:last-of-type {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.settings-section h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #22223b;
+  margin: 0 0 20px 0;
+}
+
+/* Settings Group */
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.settings-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #22223b;
+}
+
+.settings-group input,
+.settings-group select {
+  padding: 12px 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  font-size: 14px;
+  color: #22223b;
+  background: white;
+  transition: border-color 0.2s ease;
+  font-family: inherit;
+}
+
+.settings-group input:focus,
+.settings-group select:focus {
+  outline: none;
+  border-color: #38e472;
+  box-shadow: 0 0 0 3px rgba(56, 228, 114, 0.1);
+}
+
+.settings-group input:disabled {
+  background: #f5f5f7;
+  color: #999;
+  cursor: not-allowed;
+}
+
+/* Settings Actions */
+.settings-actions {
+  display: flex;
+  gap: 12px;
+  padding-top: 32px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.save-btn,
+.reset-btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.save-btn {
+  background: #38e472;
+  color: white;
+}
+
+.save-btn:hover {
+  background: #2cc75e;
+  box-shadow: 0 2px 8px rgba(56, 228, 114, 0.3);
+}
+
+.reset-btn {
+  background: #f5f5f7;
+  color: #22223b;
+}
+
+.reset-btn:hover {
+  background: #e0e0e0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .settings-content {
+    padding: 20px;
+  }
+
+  .page-header h1 {
+    font-size: 24px;
+  }
+
+  .settings-actions {
+    flex-direction: column;
+  }
+
+  .save-btn,
+  .reset-btn {
+    width: 100%;
+  }
+}
