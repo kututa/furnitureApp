@@ -5,9 +5,16 @@ import Cart from "../models/cart.models";
 import Product from "../models/product.models";
 import { logger } from "../utils/logger";
 
+const calculateRandomShipping = (subtotal: number): number => {
+  if (subtotal <= 0) return 0;
+  const maxShipping = subtotal / 2;
+  const randomShipping = Math.random() * maxShipping;
+  return Math.round(randomShipping); // Round to nearest whole number
+};
+
 const calculateTotals = (items: { price: number; quantity: number }[]) => {
   const subTotal = items.reduce((sum, it) => sum + it.price * it.quantity, 0);
-  const shipping = subTotal * 0.1; // 10% shipping
+  const shipping = calculateRandomShipping(subTotal); // Random shipping not exceeding half of subtotal
   const total = subTotal + shipping;
   return { subTotal, shipping, total };
 };

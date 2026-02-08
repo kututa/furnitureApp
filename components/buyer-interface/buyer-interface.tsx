@@ -1,3 +1,4 @@
+import { calculateRandomShipping } from "@/SERVICE/shippingUtils";
 import { useCartStore } from "@/stores/cartStore";
 import { useOrderStore } from "@/stores/orderStore";
 import { useProductStore } from "@/stores/productStore";
@@ -54,10 +55,18 @@ const BuyerInterface = () => {
   const [showReceipt, setShowReceipt] = useState(false);
   const [lastOrder, setLastOrder] = useState<any>(null);
   const [showProfile, setShowProfile] = useState(false);
+  const [shippingCost, setShippingCost] = useState(0);
 
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  // Calculate shipping cost whenever cart subtotal changes
+  useEffect(() => {
+    const subtotal = getSubtotal();
+    const newShipping = calculateRandomShipping(subtotal);
+    setShippingCost(newShipping);
+  }, [cartItems]);
 
   const handleImagePress = (imageUrl: string, productId: string) => {
     setSelectedImage(imageUrl);
@@ -126,9 +135,8 @@ const BuyerInterface = () => {
   };
 
   // Calculate summary values from store
-  const SHIPPING_COST = 100;
   const subtotal = getSubtotal();
-  const total = subtotal + SHIPPING_COST;
+  const total = subtotal + shippingCost;
 
   // Map cartItems to UI format for Checkout/Receipt
   const uiCartItems = cartItems.map((it) => ({
@@ -146,7 +154,7 @@ const BuyerInterface = () => {
     setLastOrder({
       items: uiCartItems,
       subtotal: order.subTotal || subtotal,
-      shipping: order.shipping || SHIPPING_COST,
+      shipping: order.shipping || shippingCost,
       total: order.total || total,
       orderNumber: order.orderNumber || `#${order.id || order._id}`,
       deliveryDate: new Date(
@@ -204,7 +212,7 @@ const BuyerInterface = () => {
       <Checkout
         items={uiCartItems}
         subtotal={subtotal}
-        shipping={SHIPPING_COST}
+        shipping={shippingCost}
         total={total}
         onBack={() => setShowCheckout(false)}
         onRemoveItem={handleRemoveFromCheckout}
